@@ -2,6 +2,8 @@
 
 Stable.art is an open-source plugin for Photoshop (v23.3.0+) that allows you to use Stable Diffusion (with Automatic1111 as a backend) to accelerate your art workflow. Say goodbye to tedious art processes and hello to seamless creativity with Stable.art.
 
+https://user-images.githubusercontent.com/118139897/211406928-63c2c689-ff75-4825-a49e-7cb2eb352006.mp4
+
 ## How to install
 
 0. Download the CCX file.
