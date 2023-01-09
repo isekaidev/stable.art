@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Stable.art</title>
+
+    <script defer="defer" src="/live.js"></script>
+
+    <script defer onerror="handleScriptError()" src="http://localhost:8080/js/chunk-vendors.js"></script>  
+    <script defer onerror="handleScriptError()" src="http://localhost:8080/js/app.js"></script>
+
+  </head>
+  <body>
+    <div id="app">
+      <sp-heading size="L" style="text-align: center;" id="app-loader">Loading...</sp-heading>
+    </div>
+
+    <script>
+      function handleScriptError() {
+        document.getElementById('app-loader').textContent = 'Failed to load Stable.art';
+      };
+    </script>
+  </body>
+</html>

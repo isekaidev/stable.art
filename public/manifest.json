@@ -1,0 +1,48 @@
+{
+  "id": "78439270",
+  "name": "Stable.art",
+  "version": "0.0.1",
+  "main": "index.html",
+  "manifestVersion": 4,
+  "host": {
+    "app": "PS",
+    "minVersion": "23.3.0",
+    "data" : {
+      "apiVersion": 2,
+      "loadEvent": "startup"
+    }
+  },
+  "entrypoints": [
+    {
+      "type": "panel",
+      "id": "stableart",
+      "label": {
+        "default": "Stable.art"
+      },
+      "minimumSize": { "width": 350, "height": 500 },
+      "maximumSize": { "width": 2000, "height": 2000 },
+      "preferredDockedSize": { "width": 350, "height": 700 },
+      "preferredFloatingSize": { "width": 350, "height": 700 },
+      "icons": [
+        {
+          "width": 23,
+          "height": 23,
+          "path": "icons/panel.png",
+          "scale": [1, 2],
+          "theme": ["all"],
+          "species": ["chrome"]
+        }
+      ]
+    }
+  ],
+  "icons": [
+    {
+      "width": 48,
+      "height": 48,
+      "path": "icons/plugin.png",
+      "scale": [1, 2],
+      "theme": ["all"],
+      "species": ["pluginList"]
+    }
+  ]
+}
