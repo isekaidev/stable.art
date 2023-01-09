@@ -33,7 +33,6 @@
     "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-vue": "^9.7.0",
     "eslint-plugin-vuejs-accessibility": "^1.1.0",
-    "git-describe": "^4.1.1",
     "html-replace-webpack-plugin": "^2.6.0",
     "jest": "^27.0.5",
     "node-polyfill-webpack-plugin": "^2.0.1",
