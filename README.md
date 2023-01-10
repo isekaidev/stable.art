@@ -6,7 +6,7 @@ https://user-images.githubusercontent.com/118139897/211406928-63c2c689-ff75-4825
 
 ## How to install
 
-0. Download the CCX file.
+0. Download [the CCX file](https://github.com/isekaidev/stable.art/releases/download/v0.0.1/stable.art_0.0.1.ccx).
 1. Open the Creative Cloud desktop app and ensure it is running and up to date.
 2. Make sure you have the latest version of Photoshop installed. If not, update it through the Creative Cloud desktop app.
 3. Open Photoshop.
