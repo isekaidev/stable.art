@@ -85,7 +85,7 @@ export default {
       catch (e) {
         this.isSearching = false;
         console.error('Explore API error:', e);
-        await app.showAlert(`Error: ${e.message}`);
+        await app.showAlert('Error: cannot connect to Lexica.art');
         return;
       }
 

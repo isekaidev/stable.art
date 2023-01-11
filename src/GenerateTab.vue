@@ -5,6 +5,7 @@
         <sp-textfield
           v-model-custom-element="endpoint" type="url"
           placeholder="Link to your Auto1111 (e.g. http://127.0.0.1:7860, https://***.gradio.live, https://***.loca.lt, etc)"
+          @blur="handleEndpointBlur"
         >
           <sp-label slot="label" isrequired="true">
             <!-- <svg xmlns="http://www.w3.org/2000/svg" height="14" viewBox="0 0 14 14" width="14"
@@ -166,6 +167,8 @@ export default {
       axiosController: null,
       initImageData: {maskBase64: null, currentLayerBase64: null},
       inpaintOriginalPosition: {leftOffset: null, topOffset: null, width: null, height: null},
+
+      models: [],
     };
   },
 
@@ -231,6 +234,39 @@ export default {
 
   methods: {
 
+    async handleEndpointBlur() {
+      if (!this.endpoint) {
+        await app.showAlert('Error: you did not provide an endpoint');
+        return;
+      }
+
+      if (!this.endpoint.startsWith('http')) {
+        const endpointProtocol = this.endpoint.includes('localhost') ? 'http://' : 'https://';
+        this.endpoint = `${endpointProtocol}${this.endpoint}`;
+      }
+
+      if (this.endpoint.endsWith('/')) {
+        this.endpoint = this.endpoint.slice(0, -1);
+      }
+
+      try {
+        this.models = await axios.get(`${this.endpoint}/sdapi/v1/sd-models`);
+      }
+      catch (modelsError) {
+        try {
+          await axios.get(this.endpoint);
+        }
+        catch (endpointError) {
+          console.error('endpointError error', endpointError);
+          await app.showAlert('Error: cannot connect to your server');
+          return;
+        }
+
+        console.error('/sd-models error', modelsError);
+        await app.showAlert('Error: cannot connect to your API');
+      }
+    },
+
     changeSampler(e) {
       this.currentSampler = e.target.value;
     },
@@ -258,19 +294,6 @@ export default {
     },
 
     async sendData(data, apiMethod) {
-      if (!this.endpoint.startsWith('http')) {
-        if (this.endpoint.includes('localhost')) {
-          this.endpoint = `http://${this.endpoint}`;
-        }
-        else {
-          this.endpoint = `https://${this.endpoint}`;
-        }
-      }
-
-      if (this.endpoint.endsWith('/')) {
-        this.endpoint = this.endpoint.slice(0, -1);
-      }
-
       const endpoint = `${this.endpoint}/sdapi/v1/${apiMethod}`;
 
       this.axiosController = new AbortController();
