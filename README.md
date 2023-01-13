@@ -19,7 +19,7 @@ To use Stable.art you need to enable an API for your Automatic1111:
 
 * If you use Automatic1111 locally, then you need to follow this [guide](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API).
 
-* If you want to use Google Colab, then you can use [fast-stable-diffusion](https://github.com/TheLastBen/fast-stable-diffusion). You need to edit the last cell (double-click on it) and change `Enable_API = False` to `Enable_API = True`.
+* If you want to use Google Colab, then you can use [fast-stable-diffusion](https://github.com/TheLastBen/fast-stable-diffusion). It supports API out of the box.
 
 Lastly, enter the url of your Automatic1111 server (e.g. `http://127.0.0.1:7860`, `https://***.gradio.live`, `https://***.loca.lt`, `https://***.gradio.app`, etc) in the "Endpoint" field.
 
