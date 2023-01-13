@@ -103,12 +103,14 @@
       <!-- <sp-divider size="large"></sp-divider> -->
       <br>
       <br>
-      <sp-button size="xl" style="width: 100%;" @click="generate(false)">
+      <sp-button
+        size="xl" class="generate-button"
+        @mouseover="handleMouseoverForGenerateButton(true)" @mouseleave="handleMouseoverForGenerateButton(false)"
+        @click="generate(false)"
+      >
         {{ getTextForGenerateButton(false) }}
+        <span v-show="isGenerating" class="generate-button__progressbar" :style="{ width: progress + '%' }"></span>
       </sp-button>
-      <!-- <sp-progressbar max=100 value=50 value-label="1/20 steps" variant="overBackground" indeterminate>
-        <sp-label slot="label">Generating...</sp-label>
-      </sp-progressbar> -->
     </div> <!-- .form -->
 
     <div>
@@ -162,7 +164,8 @@ export default {
       generatedImagePosition: {left: null, top: null},
       generatedImageSize: {width: null, height: null},
       tempFolder: null,
-      generatingTimer: 0,
+      progress: 0,
+      isMouseoverGenerateButton: false,
 
       axiosController: null,
       initImageData: {maskBase64: null, currentLayerBase64: null},
@@ -227,12 +230,19 @@ export default {
 
       for (const char of prompt) {
         this.prompt += char;
-        await new Promise((r) => { setTimeout(r, 5); }); // eslint-disable-line no-await-in-loop
+        await this.sleep(5); // eslint-disable-line no-await-in-loop
       }
     });
   },
 
   methods: {
+    async sleep(ms) {
+      return new Promise((resolve) => { setTimeout(resolve, ms); });
+    },
+
+    handleMouseoverForGenerateButton(newValue) {
+      this.isMouseoverGenerateButton = newValue;
+    },
 
     async handleEndpointBlur() {
       if (!this.endpoint) {
@@ -250,7 +260,7 @@ export default {
       }
 
       try {
-        this.models = await axios.get(`${this.endpoint}/sdapi/v1/sd-models`);
+        this.models = (await axios.get(`${this.endpoint}/sdapi/v1/sd-models`)).data;
       }
       catch (modelsError) {
         try {
@@ -271,13 +281,15 @@ export default {
       this.currentSampler = e.target.value;
     },
 
-    updateTimer() {
+    async updateProgress() {
       if (this.isGenerating) {
-        this.generatingTimer += 0.1;
-        setTimeout(this.updateTimer, 100);
+        this.progress = (await axios.get(`${this.endpoint}/sdapi/v1/progress`)).data.progress * 100;
+
+        await this.sleep(500);
+        await this.updateProgress();
       }
       else {
-        this.generatingTimer = 0;
+        this.progress = 0;
       }
     },
 
@@ -432,7 +444,7 @@ export default {
       storage.localStorage.setItem('steps', this.steps);
       storage.localStorage.setItem('prompt', this.prompt);
 
-      this.updateTimer();
+      this.updateProgress();
 
       const prepareGenerationHasError = await this.prepareGeneration(isLoadMore);
       if (prepareGenerationHasError) return;
@@ -837,7 +849,10 @@ export default {
 
     getTextForGenerateButton(isGenerateMoreButton) {
       if (this.isInterrupting) return 'Interrupting...';
-      if (this.isGenerating) return `Generating (${this.generatingTimer.toFixed(1)} seconds)`;
+      if (this.isGenerating) {
+        if (this.isMouseoverGenerateButton) return 'Interrupt';
+        return `Generating (${Math.round(this.progress)}%)`;
+      }
       return isGenerateMoreButton ? 'Generate More' : 'Generate';
     },
   },
@@ -846,6 +861,22 @@ export default {
 </script>
 
 <style scoped lang="scss">
+
+  .generate-button {
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .generate-button__progressbar {
+    position: absolute;
+    left: 0;
+    bottom: 0px;
+    height: 2px;
+    background: #fff;
+    display: block;
+    z-index: 1;
+  }
 
   .generate__generated-images.generated-images {
     img.active {

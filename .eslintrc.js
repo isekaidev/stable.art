@@ -105,6 +105,7 @@ module.exports = {
     // https://github.com/vue-a11y/eslint-plugin-vuejs-accessibility
     'vuejs-accessibility/alt-text': 'off',
     'vuejs-accessibility/click-events-have-key-events': 'off',
+    'vuejs-accessibility/mouse-events-have-key-events': 'off',
   },
   overrides: [
     {

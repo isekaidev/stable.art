@@ -12,7 +12,7 @@
       </div>
     </div>
 
-    <div class="explore__images explore__generated-images generated-images">
+    <div class="explore__generated-images generated-images">
       <div v-for="image in images" :key="image.id">
         <img :src="image.srcSmall">
         <div class="explore__generated-images__overlay">
