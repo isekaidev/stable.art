@@ -12,6 +12,10 @@
       </div>
     </div>
 
+    <sp-heading v-if="hasError" size="XS">
+      Error: cannot connect to Lexica.art
+    </sp-heading>
+
     <div class="explore__generated-images generated-images">
       <div v-for="image in images" :key="image.id">
         <img :src="image.srcSmall">
@@ -54,6 +58,7 @@ export default {
       images: null,
 
       isSearching: false,
+      hasError: false,
     };
   },
 
@@ -77,6 +82,7 @@ export default {
       }
 
       this.isSearching = true;
+      this.hasError = false;
 
       let response;
       try {
@@ -84,8 +90,7 @@ export default {
       }
       catch (e) {
         this.isSearching = false;
-        console.error('Explore API error:', e);
-        await app.showAlert('Error: cannot connect to Lexica.art');
+        this.hasError = true;
         return;
       }
 
