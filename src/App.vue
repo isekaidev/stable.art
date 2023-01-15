@@ -166,6 +166,11 @@ export default {
       flex-wrap: wrap;
     }
 
+    sp-picker {
+      margin-bottom: 15px;
+      display: block;
+    }
+
     & > div sp-label {
       width: 100%;
     }

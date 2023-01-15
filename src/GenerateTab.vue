@@ -5,7 +5,7 @@
         <sp-textfield
           v-model-custom-element="endpoint" type="url"
           placeholder="Link to your Auto1111 (e.g. http://127.0.0.1:7860, https://***.gradio.live, https://***.loca.lt, etc)"
-          @blur="handleEndpointBlur"
+          @blur="handleEndpointBlurAndLoadModels"
         >
           <sp-label slot="label" isrequired="true">
             <!-- <svg xmlns="http://www.w3.org/2000/svg" height="14" viewBox="0 0 14 14" width="14"
@@ -19,6 +19,21 @@
           </sp-label>
         </sp-textfield>
       </div>
+
+      <sp-picker placeholder="default" :disabled="!models.length">
+        <sp-label slot="label">Model {{ loadingModelsStatus }}</sp-label>
+        <sp-menu slot="options" @change="changeModel">
+          <!-- eslint-disable vue/no-v-text-v-html-on-component vue/no-v-html vue/html-self-closing -->
+          <sp-menu-item
+            v-for="model in models"
+            :key="model.title"
+            :selected="currentModelTitle == model.title ? true : null"
+            v-html="model.title"
+          >
+          </sp-menu-item>
+          <!-- eslint-enable-->
+        </sp-menu>
+      </sp-picker>
 
       <div>
         <sp-textarea v-model-custom-element="prompt" type="text" placeholder="Prompt">
@@ -172,6 +187,8 @@ export default {
       inpaintOriginalPosition: {leftOffset: null, topOffset: null, width: null, height: null},
 
       models: [],
+      currentModelTitle: null,
+      loadingModelsStatus: '',
     };
   },
 
@@ -219,6 +236,7 @@ export default {
     this.steps = storage.localStorage.getItem('steps') || 20;
     this.prompt = storage.localStorage.getItem('prompt');
 
+    if (this.endpoint) this.handleEndpointBlurAndLoadModels();
     this.getTempFolder();
 
     this.$root.$on('copyPrompt', async (prompt, width, height, seed, guidance) => {
@@ -244,11 +262,13 @@ export default {
       this.isMouseoverGenerateButton = newValue;
     },
 
-    async handleEndpointBlur() {
+    async handleEndpointBlurAndLoadModels() {
       if (!this.endpoint) {
         await app.showAlert('Error: you did not provide an endpoint');
         return;
       }
+
+      this.loadingModelsStatus = '(loading models...)';
 
       if (!this.endpoint.startsWith('http')) {
         const endpointProtocol = this.endpoint.includes('localhost') ? 'http://' : 'https://';
@@ -269,16 +289,32 @@ export default {
         catch (endpointError) {
           console.error('endpointError error', endpointError);
           await app.showAlert('Error: cannot connect to your server');
+          this.loadingModelsStatus = '';
           return;
         }
 
         console.error('/sd-models error', modelsError);
         await app.showAlert('Error: cannot connect to your API');
       }
+
+      this.loadingModelsStatus = '';
     },
 
-    changeSampler(e) {
-      this.currentSampler = e.target.value;
+    async changeModel(event) {
+      this.loadingModelsStatus = '(changing model...)';
+
+      try {
+        await axios.post(`${this.endpoint}/sdapi/v1/options`, {sd_model_checkpoint: event.target.value});
+        this.currentModelTitle = event.target.value;
+        this.loadingModelsStatus = '';
+      }
+      catch (error) {
+        this.loadingModelsStatus = '(error)';
+      }
+    },
+
+    changeSampler(event) {
+      this.currentSampler = event.target.value;
     },
 
     async updateProgress() {
