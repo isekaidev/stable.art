@@ -344,10 +344,16 @@ export default {
     async sendData(data, apiMethod) {
       const endpoint = `${this.endpoint}/sdapi/v1/${apiMethod}`;
 
-      this.axiosController = new AbortController();
+      const axiosConfig = {};
+      try {
+        this.axiosController = new AbortController();
+        axiosConfig.signal = this.axiosController.signal;
+      }
+      catch (e) {} // eslint-disable-line no-empty
+
       let res;
       try {
-        res = await axios.post(endpoint, data, {signal: this.axiosController.signal});
+        res = await axios.post(endpoint, data, axiosConfig);
       }
       catch (e) {
         this.isGenerating = false;
