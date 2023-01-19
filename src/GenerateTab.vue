@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="form">
+    <div ref="form" class="form">
       <div>
         <sp-textfield
           v-model-custom-element="endpoint" type="url"
@@ -36,13 +36,19 @@
       </sp-picker>
 
       <div>
-        <sp-textarea v-model-custom-element="prompt" type="text" placeholder="Prompt">
+        <sp-textarea
+          ref="prompt" v-model-custom-element="prompt" type="text"
+          placeholder="Prompt" @input="handleTextareaInput"
+        >
           <sp-label slot="label" isrequired="true">Prompt</sp-label>
         </sp-textarea>
       </div>
 
       <div>
-        <sp-textarea v-model-custom-element="negativePrompt" type="text" placeholder="(Optional)">
+        <sp-textarea
+          v-model-custom-element="negativePrompt" type="text" placeholder="(Optional)"
+          @input="handleTextareaInput"
+        >
           <sp-label slot="label">Negative Prompt</sp-label>
         </sp-textarea>
       </div>
@@ -163,7 +169,7 @@ export default {
       modes: ['txt2img', 'img2img', 'inpaint'],
       currentMode: 'txt2img',
       endpoint: null,
-      prompt: null,
+      prompt: '',
       negativePrompt: '',
       seed: null,
       currentSampler: 'Euler a',
@@ -189,6 +195,7 @@ export default {
       models: [],
       currentModelTitle: null,
       loadingModelsStatus: '',
+      textareaInputDebounceTimer: null,
     };
   },
 
@@ -237,8 +244,9 @@ export default {
 
   mounted() {
     this.endpoint = storage.localStorage.getItem('endpoint');
-    this.steps = storage.localStorage.getItem('steps') || 20;
-    this.prompt = storage.localStorage.getItem('prompt');
+    this.steps = storage.localStorage.getItem('steps') || this.steps;
+    this.cfgScale = storage.localStorage.getItem('cfgScale') || this.cfgScale;
+    this.currentSampler = storage.localStorage.getItem('currentSampler') || this.currentSampler;
 
     if (this.endpoint) this.handleEndpointBlurAndLoadModels();
     this.getTempFolder();
@@ -254,10 +262,51 @@ export default {
         this.prompt += char;
         await this.sleep(5); // eslint-disable-line no-await-in-loop
       }
+
+      // trigger handleTextareaInput()
+      this.$refs.prompt.dispatchEvent(new Event('input'));
     });
   },
 
   methods: {
+    handleTextareaInput(event, skipDebounceTimer) {
+      if (!skipDebounceTimer) {
+        clearTimeout(this.textareaInputDebounceTimer);
+        this.textareaInputDebounceTimer = setTimeout(() => {
+          this.handleTextareaInput(event, true);
+        }, 200);
+        return;
+      }
+
+      const newDiv = document.createElement('div');
+      newDiv.style.cssText = `
+        width: ${event.target.clientWidth}px;
+        font-size: 12px;
+        padding: 15px;
+        padding-bottom: 25px;
+        line-height: 15px;
+        white-space: pre-wrap;
+        position: absolute;
+        visibility: hidden;
+      `;
+
+      newDiv.innerHTML = `<p style="width: 100%;">${event.target.value}</p>`;
+
+      const handleWindowResize = () => {
+        const textareaDefaultHeight = 101;
+        const newHeight = newDiv.clientHeight > textareaDefaultHeight ? newDiv.clientHeight : textareaDefaultHeight;
+        event.target.style.height = `${newHeight}px`; // eslint-disable-line no-param-reassign
+
+        this.$refs.form.removeChild(newDiv);
+        window.removeEventListener('resize', handleWindowResize);
+      };
+
+      // https://forums.creativeclouddeveloper.com/t/is-it-possible-to-customize-the-scrollbar/2447/12
+      // UXP’s DOM is asynchronous, so there is a delay in when you can get clientHeight
+      window.addEventListener('resize', handleWindowResize);
+      this.$refs.form.appendChild(newDiv);
+    },
+
     async sleep(ms) {
       return new Promise((resolve) => { setTimeout(resolve, ms); });
     },
@@ -488,7 +537,8 @@ export default {
       }
       storage.localStorage.setItem('endpoint', this.endpoint);
       storage.localStorage.setItem('steps', this.steps);
-      storage.localStorage.setItem('prompt', this.prompt);
+      storage.localStorage.setItem('cfgScale', this.cfgScale);
+      storage.localStorage.setItem('currentSampler', this.currentSampler);
 
       this.updateProgress();
 

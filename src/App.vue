@@ -71,7 +71,8 @@ export default {
   }
 
   sp-textarea {
-    height: 100px;
+    height: 101px;
+    line-height: 24px;
   }
 
   sp-picker {
