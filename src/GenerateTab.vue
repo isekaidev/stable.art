@@ -345,7 +345,8 @@ export default {
       this.loadingModelsStatus = '(loading models...)';
 
       if (!this.endpoint.startsWith('http')) {
-        const endpointProtocol = this.endpoint.includes('localhost') ? 'http://' : 'https://';
+        const isBackendRunningLocally = this.endpoint.includes('localhost') || this.endpoint.includes('127.0.0.1');
+        const endpointProtocol = isBackendRunningLocally ? 'http://' : 'https://';
         this.endpoint = `${endpointProtocol}${this.endpoint}`;
       }
 
