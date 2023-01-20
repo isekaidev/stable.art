@@ -121,6 +121,22 @@
         </sp-label>
       </sp-slider>
 
+      <div class="form__advanced-settings">
+        <sp-heading size="XS" @click="toggleAdvancedSettings">
+          <span>{{ showAdvancedSettings ? '▼' : '▶' }}</span>
+          Advanced Settings
+        </sp-heading>
+
+        <div v-if="showAdvancedSettings">
+          <sp-slider v-model-custom-element="imagesNumber" min="1" max="8" show-value="false">
+            <sp-label slot="label" class="label">
+              Number of images
+              <sp-label class="value">{{ imagesNumber }}</sp-label>
+            </sp-label>
+          </sp-slider>
+        </div>
+      </div>
+
       <!-- <sp-divider size="large"></sp-divider> -->
       <br>
       <br>
@@ -176,6 +192,7 @@ export default {
       steps: 20,
       cfgScale: 7,
       denoisingStrength: 75,
+      imagesNumber: 4,
 
       generatedImages: [],
       currentGeneratedImageIndex: 0,
@@ -196,6 +213,7 @@ export default {
       currentModelTitle: null,
       loadingModelsStatus: '',
       textareaInputDebounceTimer: null,
+      showAdvancedSettings: false,
     };
   },
 
@@ -248,12 +266,11 @@ export default {
     this.cfgScale = storage.localStorage.getItem('cfgScale') || this.cfgScale;
     this.currentSampler = storage.localStorage.getItem('currentSampler') || this.currentSampler;
 
-    if (this.endpoint) this.handleEndpointBlurAndLoadModels();
+    if (this.endpoint && process.env.NODE_ENV !== 'development') this.handleEndpointBlurAndLoadModels();
     this.getTempFolder();
 
     this.$root.$on('copyPrompt', async (prompt, width, height, seed, guidance) => {
       this.prompt = '';
-
       this.seed = seed;
       this.cfgScale = guidance;
       // this.generatedImageSize = {width, height};
@@ -269,6 +286,10 @@ export default {
   },
 
   methods: {
+    toggleAdvancedSettings() {
+      this.showAdvancedSettings = !this.showAdvancedSettings;
+    },
+
     handleTextareaInput(event, skipDebounceTimer) {
       if (!skipDebounceTimer) {
         clearTimeout(this.textareaInputDebounceTimer);
@@ -396,8 +417,9 @@ export default {
 
     async sendData(data, apiMethod) {
       const endpoint = `${this.endpoint}/sdapi/v1/${apiMethod}`;
-
       const axiosConfig = {};
+
+      // https://github.com/isekaidev/stable.art/issues/13
       try {
         this.axiosController = new AbortController();
         axiosConfig.signal = this.axiosController.signal;
@@ -563,7 +585,7 @@ export default {
           subseed_strength: 0,
           seed_resize_from_h: -1,
           seed_resize_from_w: -1,
-          batch_size: 4,
+          batch_size: this.imagesNumber,
           n_iter: 1,
           steps: Number(this.steps),
           cfg_scale: Number(this.cfgScale),
@@ -598,7 +620,7 @@ export default {
           subseed_strength: 0,
           seed_resize_from_h: -1,
           seed_resize_from_w: -1,
-          batch_size: 4,
+          batch_size: this.imagesNumber,
           n_iter: 1,
           steps: Number(this.steps),
           cfg_scale: Number(this.cfgScale),
@@ -982,6 +1004,29 @@ export default {
 
     img:not(.active):hover {
       outline: 2px solid #2680eb;
+    }
+  }
+
+  .form__modes sp-action-button,
+  .form__modes sp-button {
+      margin-right: 10px;
+      font-weight: normal;
+      border-radius: 0px;
+  }
+
+  .form__advanced-settings {
+    & > sp-heading {
+      cursor: pointer;
+
+      span {
+        width: 10px;
+        margin-right: 5px;
+        display: inline-block;
+      }
+    }
+
+    & > div {
+      width: 100%;
     }
   }
 

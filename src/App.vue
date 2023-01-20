@@ -7,13 +7,8 @@
       </div>
     </div>
 
-    <div v-show="currentTab == 'generate'">
-      <GenerateTab />
-    </div>
-
-    <div v-show="currentTab == 'explore'">
-      <ExploreTab />
-    </div>
+    <GenerateTab v-show="currentTab == 'generate'" />
+    <ExploreTab v-show="currentTab == 'explore'" />
 
     <sp-detail class="version">Version: {{ getVersion }}</sp-detail>
   </div>
@@ -196,13 +191,6 @@ export default {
         text-align: right;
         min-width: 0;
       }
-    }
-
-    .form__modes sp-action-button,
-    .form__modes sp-button {
-      margin-right: 10px;
-      font-weight: normal;
-      border-radius: 0px;
     }
 
     .form__inline-field {
