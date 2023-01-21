@@ -171,6 +171,7 @@ import {action, core, app} from 'photoshop';
 
 import axios from 'axios';
 import Jimp from 'jimp';
+import {changeDpiDataUrl} from 'changedpi';
 
 import maskGeneratorMixin from './maskGeneratorMixin';
 
@@ -492,7 +493,9 @@ export default {
     },
 
     async chooseImage(id) {
-      const imgUrl = this.generatedImages[id];
+      // this.generatedImages[id] is base64 url
+      // we need to change DPI because otherwise, if document DPI is not 72, then photoshop will resize placed layer
+      const imgUrl = changeDpiDataUrl(`data:image/png;base64,${this.generatedImages[id]}`, app.activeDocument.resolution);
       const imgBase64 = imgUrl.replace(/^data:image\/\w+;base64,/, '');
       const img = Buffer.from(imgBase64, 'base64');
 
