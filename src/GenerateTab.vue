@@ -262,7 +262,7 @@ export default {
   },
 
   mounted() {
-    this.endpoint = storage.localStorage.getItem('endpoint');
+    // this.endpoint = storage.localStorage.getItem('endpoint');
     this.steps = storage.localStorage.getItem('steps') || this.steps;
     this.cfgScale = storage.localStorage.getItem('cfgScale') || this.cfgScale;
     this.currentSampler = storage.localStorage.getItem('currentSampler') || this.currentSampler;
