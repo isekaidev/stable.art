@@ -262,8 +262,8 @@ export default {
 
       const createLayerWithColor = (red, grain, blue) => ([
         {
-          _obj: 'selectNoLayers',
-          _target: {_ref: 'layer', _enum: 'ordinal', _value: 'targetEnum'},
+          _obj: 'make',
+          _target: {_ref: 'layer'},
         },
         {
           _obj: 'make',
