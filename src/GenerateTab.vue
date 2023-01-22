@@ -218,6 +218,7 @@ export default {
       loadingModelsStatus: '',
       textareaInputDebounceTimer: null,
       showAdvancedSettings: false,
+      isCheckedConnectionToServer: false,
     };
   },
 
@@ -268,13 +269,13 @@ export default {
   },
 
   mounted() {
-    // this.endpoint = storage.localStorage.getItem('endpoint');
+    this.endpoint = storage.localStorage.getItem('endpoint');
     this.steps = storage.localStorage.getItem('steps') || this.steps;
     this.cfgScale = storage.localStorage.getItem('cfgScale') || this.cfgScale;
     this.currentSampler = storage.localStorage.getItem('currentSampler') || this.currentSampler;
     this.imagesNumber = storage.localStorage.getItem('imagesNumber') || this.imagesNumber;
+    this.currentMode = storage.localStorage.getItem('currentMode') || this.currentMode;
 
-    if (this.endpoint && process.env.NODE_ENV !== 'development') this.handleEndpointBlurAndLoadModels();
     this.getTempFolder();
 
     this.$root.$on('copyPrompt', async (prompt, width, height, seed, guidance) => {
@@ -345,6 +346,7 @@ export default {
     },
 
     async handleEndpointBlurAndLoadModels() {
+      this.isCheckedConnectionToServer = true;
       if (!this.endpoint) {
         await app.showAlert('Error: you did not provide an endpoint');
         return;

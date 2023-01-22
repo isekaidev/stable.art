@@ -56,6 +56,10 @@ export default {
     },
 
     async generate(isLoadMore) {
+      if (!this.isCheckedConnectionToServer) {
+        await this.handleEndpointBlurAndLoadModels();
+      }
+
       if (this.isGenerating) {
         this.interrupt();
         return;
@@ -81,6 +85,7 @@ export default {
       storage.localStorage.setItem('cfgScale', this.cfgScale);
       storage.localStorage.setItem('currentSampler', this.currentSampler);
       storage.localStorage.setItem('imagesNumber', this.imagesNumber);
+      storage.localStorage.setItem('currentMode', this.currentMode);
 
       this.updateProgress();
 
