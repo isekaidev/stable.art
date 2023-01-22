@@ -20,14 +20,17 @@
         </sp-textfield>
       </div>
 
-      <sp-picker placeholder="default" :disabled="!models.length">
+      <sp-picker :placeholder="getDefaultModelTitle" :disabled="!models.length">
         <sp-label slot="label">Model {{ loadingModelsStatus }}</sp-label>
         <sp-menu slot="options" @change="changeModel">
           <!-- eslint-disable vue/no-v-text-v-html-on-component vue/no-v-html vue/html-self-closing -->
+
+          <sp-menu-item :selected="currentModelTitle === null ? true : null" v-html="getDefaultModelTitle"></sp-menu-item>
+
           <sp-menu-item
             v-for="model in models"
             :key="model.title"
-            :selected="currentModelTitle == model.title ? true : null"
+            :selected="currentModelTitle === model.title ? true : null"
             v-html="model.title"
           >
           </sp-menu-item>
@@ -219,6 +222,9 @@ export default {
   },
 
   computed: {
+    getDefaultModelTitle() {
+      return 'default (current webui value)';
+    },
     getSizeForGeneratingImage() {
       // https://github.com/AUTOMATIC1111/stable-diffusion-webui/issues/4094
       let {width, height} = this.generatedImageSize;
@@ -357,6 +363,7 @@ export default {
       }
 
       try {
+        this.currentModelTitle = null;
         this.models = (await axios.get(`${this.endpoint}/sdapi/v1/sd-models`)).data;
       }
       catch (modelsError) {
@@ -378,8 +385,12 @@ export default {
     },
 
     async changeModel(event) {
-      this.loadingModelsStatus = '(changing model...)';
+      if (event.target.value === this.getDefaultModelTitle) {
+        this.currentModelTitle = null;
+        return;
+      }
 
+      this.loadingModelsStatus = '(changing model...)';
       try {
         await axios.post(`${this.endpoint}/sdapi/v1/options`, {sd_model_checkpoint: event.target.value});
         this.currentModelTitle = event.target.value;
