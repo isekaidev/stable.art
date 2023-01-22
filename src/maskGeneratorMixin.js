@@ -319,15 +319,20 @@ export default {
           makeVisible: false,
           _options: {dialogOptions: 'dontDisplay'},
         },
+      ];
+      await action.batchPlay(cmd, {modalBehavior: 'execute'});
+
+      // we need to separate select and bringLayerToFront() into 2 batchPlays
+      // because old photoshop versions have a bug and ignore bringLayerToFront() if we get a new selection
+      // https://forums.creativeclouddeveloper.com/t/move-layer-bug/3458/2
+      await action.batchPlay([
         ...bringLayerToFront(false),
         {
           _obj: 'mergeLayersNew',
           _options: {dialogOptions: 'dontDisplay'},
         },
         setNewName,
-      ];
-
-      await action.batchPlay(cmd, {modalBehavior: 'execute'});
+      ], {modalBehavior: 'execute'});
     },
 
     async handleMask(maskBuffer, currentLayerBuffer) {
