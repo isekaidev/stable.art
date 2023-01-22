@@ -171,9 +171,9 @@ import {action, core, app} from 'photoshop';
 
 import axios from 'axios';
 import Jimp from 'jimp';
-import {changeDpiDataUrl} from 'changedpi';
 
 import maskGeneratorMixin from './maskGeneratorMixin';
+import {changeDpiDataUrl} from './changedpi';
 
 export default {
 
