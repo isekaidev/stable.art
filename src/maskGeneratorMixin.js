@@ -56,8 +56,9 @@ export default {
     },
 
     async generate(isLoadMore) {
-      if (!this.isCheckedConnectionToServer) {
+      if (!this.models.length) {
         await this.handleEndpointBlurAndLoadModels();
+        if (!this.models.length) return; // no models == no connection to server
       }
 
       if (this.isGenerating) {

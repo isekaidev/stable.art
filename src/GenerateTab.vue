@@ -218,7 +218,6 @@ export default {
       loadingModelsStatus: '',
       textareaInputDebounceTimer: null,
       showAdvancedSettings: false,
-      isCheckedConnectionToServer: false,
     };
   },
 
@@ -346,7 +345,6 @@ export default {
     },
 
     async handleEndpointBlurAndLoadModels() {
-      this.isCheckedConnectionToServer = true;
       if (!this.endpoint) {
         await app.showAlert('Error: you did not provide an endpoint');
         return;
