@@ -71,6 +71,18 @@ export default {
         return;
       }
 
+      if (!app.activeDocument) {
+        await core.executeAsModal(async () => {
+          await app.documents.add({
+            width: 512,
+            height: 512,
+            resolution: 72,
+            mode: 'RGBColorMode',
+            fill: '#fff',
+          });
+        });
+      }
+
       this.isGenerating = true;
       if (!isLoadMore) {
         this.generatedImagePosition = {left: null, top: null};
