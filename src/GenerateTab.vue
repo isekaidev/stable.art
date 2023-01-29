@@ -526,29 +526,35 @@ export default {
       const token = storage.localFileSystem.createSessionToken(imageFile); // batchPlay requires a token on _path
 
       try {
-        this.currentLayerId = await core.executeAsModal(async (executionContext) => {
+        await core.executeAsModal(async (executionContext) => {
           const suspensionID = await executionContext.hostControl.suspendHistory({
             documentID: app.activeDocument.id,
             name: 'Place generated image',
           });
 
-          if (this.currentLayerId) {
-            const layer = app.activeDocument.activeLayers.find((x) => x._id === this.currentLayerId);
-            if (layer) {
-              await layer.delete();
-            }
-          }
-
           const placeImageCmd = [
+
+            ...this.currentLayerId ? [{
+              _obj: 'delete',
+              _target: {_ref: 'layer', _id: this.currentLayerId},
+            }] : [],
+
             {
               _obj: 'make',
               _target: {_ref: 'layer'},
+            },
+
+            // upload the original selection from the channel
+            // photoshop will use this selection to get a position for placeEvent
+            {
+              _obj: 'set',
+              _target: {_ref: 'channel', _property: 'selection'},
+              to: {_ref: 'channel', _name: 'stableart_mask'},
             },
             {
               _obj: 'placeEvent',
               target: {_path: token, _kind: 'local'},
               linked: false,
-              _isCommand: true,
             },
             {
               _obj: 'multiGet',
@@ -559,27 +565,63 @@ export default {
           ];
 
           const placeImageResults = await action.batchPlay(placeImageCmd, {modalBehavior: 'execute'});
-          const placedImageTopPosition = placeImageResults[2].bounds.top._value;
-          const placedImageLeftPosition = placeImageResults[2].bounds.left._value;
+          this.currentLayerId = placeImageResults[placeImageCmd.length - 1].layerID;
 
-          const moveImageCmd = [
+          // we do not need to add a mask for txt2img images
+          if (this.currentMode === 'txt2img') {
+            await executionContext.hostControl.resumeHistory(suspensionID);
+            return;
+          }
+
+          // const placedImageTopPosition = placeImageResults[placeImageCmd.length - 1].bounds.top._value;
+          // const placedImageLeftPosition = placeImageResults[placeImageCmd.length - 1].bounds.left._value;
+
+          const createMaskForImageCmd = [
+            // TODO: refactor and remove legacy for generatedImagePosition and placeImageResults
+            // (e.g. we can get layerID from the make/placeEvent events)
+            // {
+            //   _obj: 'move',
+            //   _target: [{_ref: 'layer', _enum: 'ordinal', _value: 'targetEnum'}],
+            //   to: {
+            //     _obj: 'offset',
+            //     horizontal: {_unit: 'pixelsUnit', _value: this.generatedImagePosition.left - placedImageLeftPosition},
+            //     vertical: {_unit: 'pixelsUnit', _value: this.generatedImagePosition.top - placedImageTopPosition},
+            //   },
+            // },
+
+            // upload the original selection from the channel, then create the mask from this selection
             {
-              _obj: 'move',
-              _target: [{_ref: 'layer', _enum: 'ordinal', _value: 'targetEnum'}],
+              _obj: 'set',
+              _target: {_ref: 'channel', _property: 'selection'},
+              to: {_ref: 'channel', _name: 'stableart_mask'},
+            },
+            {
+              _obj: 'make',
+              new: {_class: 'channel'},
+              at: {_ref: 'channel', _enum: 'channel', _value: 'mask'},
+              using: {_enum: 'userMaskEnabled', _value: 'revealSelection'},
+            },
+
+            // fix edges of the mask
+            {
+              _obj: 'set',
+              _target: {_ref: 'layer', _enum: 'ordinal', _value: 'targetEnum'},
               to: {
-                _obj: 'offset',
-                horizontal: {_unit: 'pixelsUnit', _value: this.generatedImagePosition.left - placedImageLeftPosition},
-                vertical: {_unit: 'pixelsUnit', _value: this.generatedImagePosition.top - placedImageTopPosition},
+                _obj: 'layer',
+                userMaskFeather: {_unit: 'pixelsUnit', _value: 10},
               },
-              _isCommand: true,
+            },
+
+            // and again upload the original selection from the channel
+            {
+              _obj: 'set',
+              _target: {_ref: 'channel', _property: 'selection'},
+              to: {_ref: 'channel', _name: 'stableart_mask'},
             },
           ];
-          await action.batchPlay(moveImageCmd, {modalBehavior: 'execute'});
+          await action.batchPlay(createMaskForImageCmd, {modalBehavior: 'execute'});
 
-          // resume the history state
           await executionContext.hostControl.resumeHistory(suspensionID);
-
-          return placeImageResults[2].layerID;
         });
 
         this.currentGeneratedImageIndex = id;

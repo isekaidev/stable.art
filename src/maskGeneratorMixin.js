@@ -20,13 +20,52 @@ export default {
         ],
         _options: {dialogOptions: 'dontDisplay'},
       }], {});
-
       const {selection} = batchPlaySelection[0];
+
       if (this.currentMode !== 'txt2img' && !selection) {
         await app.showAlert('For the img2img/inpaint modes you need to select the area that will be in-painted. You can use any of the selection tools (e.g. Marquee, Lasso, Wand, etc)');
         this.isGenerating = false;
         return true;
       }
+
+      await core.executeAsModal(async (executionContext) => {
+        const suspensionID = await executionContext.hostControl.suspendHistory({
+          documentID: app.activeDocument.id,
+          name: 'Save selection',
+        });
+
+        const hasMaskChannel = app.activeDocument.channels.getByName('stableart_mask');
+        const handleMaskChannelCmd = [
+          ...hasMaskChannel ? [{
+            _obj: 'delete',
+            _target: {_ref: 'channel', _name: 'stableart_mask'},
+          }] : [],
+
+          // If there is no selection, then this is the txt2img mod;
+          // we need to set a new selection (that covers the entire document)
+          // because otherwise a generated image can be placed beyond the canvas borders
+          ...selection ? [] : [{
+            _obj: 'set',
+            _target: {_ref: 'channel', _property: 'selection'},
+            to: {
+              _obj: 'rectangle',
+              top: {_unit: 'pixelsUnit', _value: 0},
+              left: {_unit: 'pixelsUnit', _value: 0},
+              bottom: {_unit: 'pixelsUnit', _value: app.activeDocument.height},
+              right: {_unit: 'pixelsUnit', _value: app.activeDocument.width},
+            },
+          }],
+
+          {
+            _obj: 'duplicate',
+            _target: {_ref: 'channel', _property: 'selection'},
+            name: 'stableart_mask',
+          },
+        ];
+
+        await action.batchPlay(handleMaskChannelCmd, {modalBehavior: 'execute'});
+        await executionContext.hostControl.resumeHistory(suspensionID);
+      }, {commandName: 'Saving selection...'});
 
       if (this.currentMode === 'img2img' || this.currentMode === 'inpaint') {
         // const useOffset = !batchPlaySelection[0].solid;
