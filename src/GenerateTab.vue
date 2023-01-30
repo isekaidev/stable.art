@@ -245,8 +245,8 @@ export default {
       }
 
       if (width !== height || this.currentMode !== 'txt2img') {
-        width = 64 * Math.round(width / 64);
-        height = 64 * Math.round(height / 64);
+        width = 8 * Math.round(width / 8);
+        height = 8 * Math.round(height / 8);
       }
       return {width, height};
     },
