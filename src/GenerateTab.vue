@@ -181,6 +181,7 @@
 import {storage} from 'uxp';
 import {action, core, app} from 'photoshop';
 
+import * as Sentry from '@sentry/vue';
 import axios from 'axios';
 import Jimp from 'jimp';
 
@@ -513,6 +514,13 @@ export default {
     },
 
     async chooseImage(id) {
+      // DEBUG ERROR: Cannot read properties of null (reading 'resolution') (PHOTOSHOP-PLUGIN-E)
+      if (!app.activeDocument?.resolution) {
+        Sentry.captureException(new Error('chooseImage: cannot get resolution'), {
+          activeDocument: app.activeDocument,
+        });
+      }
+
       // this.generatedImages[id] is base64 url
       // we need to change DPI because otherwise, if document DPI is not 72, then photoshop will resize placed layer
       const imgUrl = changeDpiDataUrl(`data:image/png;base64,${this.generatedImages[id]}`, app.activeDocument?.resolution || 72);

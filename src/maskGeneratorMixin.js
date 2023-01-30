@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/vue';
 import {storage} from 'uxp';
 import {action, core, app} from 'photoshop';
 import * as fs from 'fs';
@@ -403,6 +404,16 @@ export default {
           whitePositions.push({x, y});
         }
       });
+
+      // DEBUG ERROR: Reduce of empty array with no initial value (PHOTOSHOP-PLUGIN-1B)
+      if (!whitePositions.length) {
+        Sentry.setContext('handleMask', {
+          maskBuffer: maskBuffer?.byteLength,
+          currentLayerBuffer: currentLayerBuffer?.byteLength,
+          maskJimpObject,
+          maskJimpObjectBitmap: maskJimpObject?.bitmap,
+        });
+      }
 
       // +1 is required because positions start from 0-index
       // without +1 you can get 511 width/height for 512 image
