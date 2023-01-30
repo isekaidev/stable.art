@@ -303,7 +303,7 @@ export default {
 
       const activeLayerResults = await action.batchPlay(cmd, {modalBehavior: 'execute'});
       const imageFile = await this.tempFolder.createFile(EXPORT_MASK_FILENAME, {overwrite: true});
-      await app.activeDocument.saveAs.png(imageFile, null, true);
+      await app.activeDocument.saveAs.png(imageFile, {compression: 6}, true);
 
       const activeLayerBuffer = await this.loadLocalFile(EXPORT_MASK_FILENAME);
       await fs.unlink(`plugin-temp:/${EXPORT_MASK_FILENAME}`);
