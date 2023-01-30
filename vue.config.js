@@ -57,6 +57,10 @@ module.exports = defineConfig({
           pattern: '<script defer="defer" src="/live.js"></script>',
           replacement: '',
         },
+        {
+          pattern: '<script src="http://localhost:8098"></script>', // vue-devtools
+          replacement: '',
+        },
       ]));
     }
 
