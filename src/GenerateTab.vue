@@ -533,12 +533,6 @@ export default {
           });
 
           const placeImageCmd = [
-
-            ...this.currentLayerId ? [{
-              _obj: 'delete',
-              _target: {_ref: 'layer', _id: this.currentLayerId},
-            }] : [],
-
             {
               _obj: 'make',
               _target: {_ref: 'layer'},
@@ -556,16 +550,15 @@ export default {
               target: {_path: token, _kind: 'local'},
               linked: false,
             },
-            {
-              _obj: 'multiGet',
-              _target: {_ref: 'layer', _enum: 'ordinal', _value: 'targetEnum'},
-              extendedReference: [['bounds', 'boundsNoEffects', 'boundsNoMask', 'layerID']],
-              options: {failOnMissingProperty: false, failOnMissingElement: false},
-            },
+
+            ...this.currentLayerId ? [{
+              _obj: 'delete',
+              _target: {_ref: 'layer', _id: this.currentLayerId},
+            }] : [],
           ];
 
           const placeImageResults = await action.batchPlay(placeImageCmd, {modalBehavior: 'execute'});
-          this.currentLayerId = placeImageResults[placeImageCmd.length - 1].layerID;
+          this.currentLayerId = placeImageResults.find((x) => x._obj === 'placeEvent').ID; // eslint-disable-line no-underscore-dangle
 
           // we do not need to add a mask for txt2img images
           if (this.currentMode === 'txt2img') {
