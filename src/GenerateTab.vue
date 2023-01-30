@@ -515,7 +515,7 @@ export default {
     async chooseImage(id) {
       // this.generatedImages[id] is base64 url
       // we need to change DPI because otherwise, if document DPI is not 72, then photoshop will resize placed layer
-      const imgUrl = changeDpiDataUrl(`data:image/png;base64,${this.generatedImages[id]}`, app.activeDocument.resolution);
+      const imgUrl = changeDpiDataUrl(`data:image/png;base64,${this.generatedImages[id]}`, app.activeDocument?.resolution || 72);
       const imgBase64 = imgUrl.replace(/^data:image\/\w+;base64,/, '');
       const img = Buffer.from(imgBase64, 'base64');
 
