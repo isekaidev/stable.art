@@ -120,11 +120,11 @@
       <sp-detail v-show="currentMode === 'txt2img'" size="M">
         Tip for txt2img: you can use the rectangular marquee tool to specify any size (with any ratio) you desire
       </sp-detail>
-      <sp-detail v-show="currentMode !== 'txt2img'" size="M">
-        <!-- eslint-disable-next-line vue/max-len -->
+
+      <!-- <sp-detail v-show="currentMode !== 'txt2img'" size="M">
         Tip: you can simply click "Generate more" without recreating the selection if you want to generate more images with the same selection.
         It will use the same selection but new parameters (e.g. prompt, steps, sampling method, etc)
-      </sp-detail>
+      </sp-detail> -->
 
       <sp-slider v-show="currentMode !== 'txt2img'" v-model-custom-element="denoisingStrength" min="1" max="99" show-value="false">
         <sp-label slot="label" class="label">
