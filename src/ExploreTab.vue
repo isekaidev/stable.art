@@ -117,25 +117,14 @@ export default {
 <style scoped lang="scss">
 
   .explore__generated-images.generated-images {
-    justify-content: center;
-
     & > div {
       width: calc(33% - 10px);
       max-width: 200px;
       margin: 0 5px 10px 5px;
-      position: relative;
 
       &:hover .explore__generated-images__overlay {
         visibility: visible;
       }
-    }
-
-    img {
-      width: 100%;
-      max-width: 100%;
-      margin: 0;
-      height: 100%;
-      vertical-align: bottom;
     }
   }
 
@@ -152,15 +141,8 @@ export default {
     display: flex;
     flex-direction: column-reverse;
 
-    .sp-button--icon {
-      position: absolute;
-      top: 0;
-      margin: 7px;
-      z-index: 1;
-
-      &:nth-child(2) {
-        right: 0
-      }
+    .sp-button--icon:nth-child(2) {
+      right: 0
     }
 
     sp-body {

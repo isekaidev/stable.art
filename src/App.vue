@@ -234,21 +234,37 @@ export default {
   /* GENERATED IMAGES */
   .generated-images {
     margin-top: 30px;
+    margin-bottom: 30px;
     display: flex;
     flex-wrap: wrap;
-    justify-content: flex-start;
-    margin-bottom: 30px;
+    justify-content: center;
 
-    img {
+    & > div {
       width: calc(50% - 20px);
       min-height: 85px;
-      margin-bottom: 10px;
-      margin-right: 10px;
-      object-fit: cover;
       cursor: pointer;
-
-      display: block;
       position: relative;
+      margin: 10px;
+      margin-top: 0;
+    }
+
+    img {
+      object-fit: cover;
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+      height: 100%;
+      vertical-align: bottom;
+    }
+
+    .sp-button--icon {
+      position: absolute;
+      top: 0;
+      margin: 7px;
+      z-index: 1;
+
+      width: 26px;
+      height: 26px;
     }
   }
 

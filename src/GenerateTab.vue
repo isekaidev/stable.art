@@ -164,10 +164,25 @@
 
     <div>
       <div v-if="generatedImages.length" class="generate__generated-images generated-images">
-        <img
-          v-for="(img, i) in generatedImages" :key="i" :src="`data:image/png;base64,${img}`"
-          :class="{ 'active': i == currentGeneratedImageIndex }" @click="chooseImage(i)"
-        />
+        <div
+          v-for="(img, i) in generatedImages" :key="i"
+          :class="{ 'active': i === currentGeneratedImageIndex }"
+        >
+          <img :src="`data:image/png;base64,${img}`" @click="chooseImage(i)" />
+
+          <sp-button
+            class="sp-button--icon" :class="{ 'active': addedImages.find((x) => x.index === i) }"
+            quiet variant="primary" @click="chooseAdditionalImage(i)"
+          >
+            <!-- eslint-disable-next-line vue/attributes-order -->
+            <svg @click="chooseAdditionalImage(i)" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
+              <g id="CheckmarkSize200">
+                <rect id="Frame" width="12" height="12" fill="red" opacity="0" />
+                <path d="M11.19531,1.17822a1.0431,1.0431,0,0,0-1.46289.1753L4.28967,8.2818,2.24707,5.83105A1.0418,1.0418,0,0,0,.64648,7.165L3.5127,10.604c.02142.0257.05285.03516.07617.05829a.97029.97029,0,0,0,.08056.09455,1.00368,1.00368,0,0,0,.148.08038,1.00365,1.00365,0,0,0,.10266.05572,1.03457,1.03457,0,0,0,.3924.08655l.01508-.00342a1.03348,1.03348,0,0,0,.38635-.087.99926.99926,0,0,0,.11719-.06684A.99051.99051,0,0,0,4.98,10.7373a.9737.9737,0,0,0,.0769-.09576c.02271-.0238.0542-.03363.075-.06l6.23925-7.94092A1.04154,1.04154,0,0,0,11.19531,1.17822Z" />
+              </g>
+            </svg>
+          </sp-button>
+        </div>
       </div>
 
       <sp-button v-if="generatedImages.length" variant="primary" @click="generate(true)">
@@ -189,7 +204,6 @@ import maskGeneratorMixin from './maskGeneratorMixin';
 import {changeDpiDataUrl} from './changedpi';
 
 export default {
-
   mixins: [maskGeneratorMixin],
   data() {
     return {
@@ -212,6 +226,7 @@ export default {
       currentGeneratedImageIndex: 0,
       currentLayerId: null,
       currentSeedList: [],
+      addedImages: [],
 
       generatedImagePosition: {left: null, top: null},
       generatedImageSize: {width: null, height: null},
@@ -472,6 +487,7 @@ export default {
       const isGeneratingMoreImages = this.currentSeedList.length > 0;
       if (!isGeneratingMoreImages) {
         this.currentLayerId = null;
+        this.addedImages = [];
         this.chooseImage(0);
       }
 
@@ -513,6 +529,26 @@ export default {
       this.isGenerating = false;
     },
 
+    async chooseAdditionalImage(id) {
+      this.currentLayerId = null;
+      const addedImagesIndex = this.addedImages.findIndex((x) => x.index === id);
+
+      if (addedImagesIndex > -1) {
+        await core.executeAsModal(async () => {
+          await action.batchPlay([{
+            _obj: 'delete',
+            _target: {_ref: 'layer', _id: this.addedImages[addedImagesIndex].layerId},
+          }], {modalBehavior: 'execute'});
+
+          this.addedImages.splice(addedImagesIndex, 1);
+          this.currentGeneratedImageIndex = null;
+        });
+      }
+      else {
+        this.chooseImage(id);
+      }
+    },
+
     async chooseImage(id) {
       // DEBUG ERROR: Cannot read properties of null (reading 'resolution') (PHOTOSHOP-PLUGIN-E)
       if (!app.activeDocument?.resolution) {
@@ -520,6 +556,8 @@ export default {
           activeDocument: app.activeDocument,
         });
       }
+
+      if (this.currentLayerId) this.addedImages = [];
 
       // this.generatedImages[id] is base64 url
       // we need to change DPI because otherwise, if document DPI is not 72, then photoshop will resize placed layer
@@ -626,6 +664,7 @@ export default {
         });
 
         this.currentGeneratedImageIndex = id;
+        this.addedImages.push({index: id, layerId: this.currentLayerId});
       }
       catch (e) {
         console.error(e);
@@ -663,14 +702,25 @@ export default {
     z-index: 1;
   }
 
-  .generate__generated-images.generated-images {
-    img.active {
-      border: 5px solid #2680eb;
-      padding: -5px;
+  .generate__generated-images.generated-images > div {
+    .sp-button--icon {
+      right: 0;
+      svg {
+        margin: 5px;
+      }
+
+      &:not(.active),
+      &:not(.active) svg {
+        display: none;
+      }
     }
 
-    img:not(.active):hover {
+    &.active,
+    &:hover {
       outline: 2px solid #2680eb;
+      .sp-button--icon {
+        display: block;
+      }
     }
   }
 
