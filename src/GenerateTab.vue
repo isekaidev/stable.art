@@ -1,94 +1,139 @@
 <template>
   <div>
     <div ref="form" class="form">
-      <div>
-        <sp-textfield
-          v-model-custom-element="endpoint" type="url"
-          placeholder="Link to your Auto1111 (e.g. http://127.0.0.1:7860, https://***.gradio.live, https://***.loca.lt, etc)"
-          @blur="handleEndpointBlurAndLoadModels"
-        >
-          <sp-label slot="label" isrequired="true">
-            <!-- <svg xmlns="http://www.w3.org/2000/svg" height="14" viewBox="0 0 14 14" width="14"
-              style="display: inline-block;"
-            >
-              <title>InfoSmall</title>
-              <rect id="ToDelete" fill="#ff13dc" opacity="0" width="14" height="14" /><path d="M7,.77778A6.22222,6.22222,0,1,0,13.22222,7,6.22222,6.22222,0,0,0,7,.77778ZM6.88333,2.45a1.057,1.057,0,0,1,1.11308.99778q.00273.05018.0007.10044A1.036,1.036,0,0,1,6.88333,4.662,1.05229,1.05229,0,0,1,5.76956,3.54744,1.057,1.057,0,0,1,6.7837,2.44926Q6.83352,2.44728,6.88333,2.45ZM8.55556,10.5a.38889.38889,0,0,1-.38889.38889H5.83333A.38889.38889,0,0,1,5.44444,10.5V9.72222a.3889.3889,0,0,1,.38889-.38889h.38889V7H5.83333a.38889.38889,0,0,1-.38889-.38889V5.83333a.3889.3889,0,0,1,.38889-.38889H7.38889a.38889.38889,0,0,1,.38889.38889v3.5h.38889a.3889.3889,0,0,1,.38889.38889Z" />
-            </svg> -->
+      <div class="form__advanced-settings">
+        <sp-heading size="XS" @click="toggleAdvancedSettings">
+          <span>{{ showAdvancedSettings ? '▼' : '▶' }}</span>
+          Advanced Settings
+        </sp-heading>
 
-            Endpoint
-          </sp-label>
-        </sp-textfield>
+        <div v-if="showAdvancedSettings">
+          <sp-textfield
+            v-model-custom-element="endpoint" type="url"
+            placeholder="Link to your Auto1111 (e.g. http://127.0.0.1:7860, https://***.gradio.live, https://***.loca.lt, etc)"
+            @blur="handleEndpointBlurAndLoadModels"
+          >
+            <sp-label slot="label" isrequired="true">
+              <!-- <svg xmlns="http://www.w3.org/2000/svg" height="14" viewBox="0 0 14 14" width="14"
+                style="display: inline-block;"
+              >
+                <title>InfoSmall</title>
+                <rect id="ToDelete" fill="#ff13dc" opacity="0" width="14" height="14" /><path d="M7,.77778A6.22222,6.22222,0,1,0,13.22222,7,6.22222,6.22222,0,0,0,7,.77778ZM6.88333,2.45a1.057,1.057,0,0,1,1.11308.99778q.00273.05018.0007.10044A1.036,1.036,0,0,1,6.88333,4.662,1.05229,1.05229,0,0,1,5.76956,3.54744,1.057,1.057,0,0,1,6.7837,2.44926Q6.83352,2.44728,6.88333,2.45ZM8.55556,10.5a.38889.38889,0,0,1-.38889.38889H5.83333A.38889.38889,0,0,1,5.44444,10.5V9.72222a.3889.3889,0,0,1,.38889-.38889h.38889V7H5.83333a.38889.38889,0,0,1-.38889-.38889V5.83333a.3889.3889,0,0,1,.38889-.38889H7.38889a.38889.38889,0,0,1,.38889.38889v3.5h.38889a.3889.3889,0,0,1,.38889.38889Z" />
+              </svg> -->
+
+              Endpoint
+            </sp-label>
+          </sp-textfield>
+
+          <sp-picker :placeholder="getDefaultModelTitle" :disabled="!models.length">
+            <sp-label slot="label">Model {{ loadingModelsStatus }}</sp-label>
+            <sp-menu slot="options" @change="changeModel">
+              <!-- eslint-disable vue/no-v-text-v-html-on-component vue/no-v-html vue/html-self-closing -->
+
+              <sp-menu-item :selected="currentModelTitle === null ? true : null" v-html="getDefaultModelTitle"></sp-menu-item>
+
+              <sp-menu-item
+                v-for="model in models"
+                :key="model.title"
+                :selected="currentModelTitle === model.title ? true : null"
+                v-html="model.title"
+              >
+              </sp-menu-item>
+              <!-- eslint-enable-->
+            </sp-menu>
+          </sp-picker>
+
+          <sp-picker @change="changeSampler">
+            <sp-label slot="label">Sampling method</sp-label>
+            <sp-menu slot="options">
+              <!-- eslint-disable vue/no-v-text-v-html-on-component vue/no-v-html vue/html-self-closing -->
+              <sp-menu-item
+                v-for="sampler in getSamplers"
+                :key="sampler"
+                :selected="currentSampler == sampler ? true : null"
+                v-html="sampler"
+              >
+              </sp-menu-item>
+              <!-- eslint-enable-->
+            </sp-menu>
+          </sp-picker>
+        </div>
       </div>
 
-      <sp-picker :placeholder="getDefaultModelTitle" :disabled="!models.length">
-        <sp-label slot="label">Model {{ loadingModelsStatus }}</sp-label>
-        <sp-menu slot="options" @change="changeModel">
-          <!-- eslint-disable vue/no-v-text-v-html-on-component vue/no-v-html vue/html-self-closing -->
+      <div class="form__modes">
+        <sp-label slot="label">Mode</sp-label>
 
-          <sp-menu-item :selected="currentModelTitle === null ? true : null" v-html="getDefaultModelTitle"></sp-menu-item>
+        <sp-button
+          v-for="mode in modes" :key="mode" size="m"
+          :variant="currentMode == mode ? 'cta' : 'primary'"
+          :title="mode === 'txt2img' ? 'Tip: you can use the rectangular marquee tool to specify any size (with any ratio)' : ''"
+          @click="changeMode(mode)"
+        >
+          {{ mode }}
+        </sp-button>
+      </div>
 
-          <sp-menu-item
-            v-for="model in models"
-            :key="model.title"
-            :selected="currentModelTitle === model.title ? true : null"
-            v-html="model.title"
-          >
-          </sp-menu-item>
-          <!-- eslint-enable-->
-        </sp-menu>
-      </sp-picker>
+      <sp-heading size="XS" @click="togglePositivePrompt">
+        <span>{{ showPositivePrompt ? '▼' : '▶' }}</span>
+        Prompt
+      </sp-heading>
 
-      <div>
+      <div v-if="showPositivePrompt">
         <sp-textarea
           ref="prompt" v-model-custom-element="prompt" type="text"
-          placeholder="Prompt" @input="handleTextareaInput"
+          placeholder="Prompt text" @input="handleTextareaInput"
         >
-          <sp-label slot="label" isrequired="true">Prompt</sp-label>
+        <!--<sp-label slot="label" isrequired="true">Prompt</sp-label>-->
         </sp-textarea>
       </div>
 
-      <div>
+      <sp-heading size="XS" @click="toggleNegativePrompt">
+        <span>{{ showNegativePrompt ? '▼' : '▶' }}</span>
+        Negative Prompt
+      </sp-heading>
+
+      <div v-if="showNegativePrompt">
         <sp-textarea
-          v-model-custom-element="negativePrompt" type="text" placeholder="(Optional)"
+          v-model-custom-element="negativePrompt" type="text" placeholder="Optional text"
           @input="handleTextareaInput"
         >
-          <sp-label slot="label">Negative Prompt</sp-label>
+        <!--<sp-label slot="label" isrequired="true">Negative Prompt</sp-label>-->
         </sp-textarea>
       </div>
 
       <div class="form__inline-field">
-        <sp-textfield v-model-custom-element="seed" type="text" placeholder="(Optional)">
-          <sp-label slot="label">Seed</sp-label>
+        <sp-textfield v-model-custom-element="seed" class="form__inline-field--half" type="text" placeholder="(Optional)">
+          <sp-label
+            slot="label"
+            class="form__inline-field--text-btn"
+            quiet
+            variant="cta"
+            title="Reuse seed from last generation, mostly useful if it was randomed"
+            @click="reuseSeed"
+          >
+            Seed
+          </sp-label>
         </sp-textfield>
 
-        <sp-button
-          class="sp-button--icon" quiet variant="primary"
-          title="Reuse seed from last generation, mostly useful if it was randomed"
-        >
-          <!-- eslint-disable-next-line vue/attributes-order -->
-          <svg @click="reuseSeed" xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 18 18" width="18">
-            <title>S Reuse 18 N</title>
-            <rect id="Canvas" fill="#ff13dc" opacity="0" width="18" height="18" /><path d="M8.37,2.154a6.88348,6.88348,0,0,0-5.2805,3.15l-1.565-.817a.346.346,0,0,0-.46681.14671L1.056,4.637a.33649.33649,0,0,0-.0215.2615L2.2,8.6665a.2155.2155,0,0,0,.26981.14172L2.4705,8.808,6.212,7.603a.33952.33952,0,0,0,.2-.1675.345.345,0,0,0-.14184-.46683L6.267,6.967,4.622,6.1065A5.158,5.158,0,0,1,9.7,3.9285a.43151.43151,0,0,0,.497-.3125l.216-.8415a.4295.4295,0,0,0-.30346-.52617l-.027-.00633A6.861,6.861,0,0,0,8.37,2.154Z" />
-            <path d="M16.456,4.1275a.339.339,0,0,0-.2245-.1365L12.34,3.341a.218.218,0,0,0-.161.038.215.215,0,0,0-.0865.1405l-.6,3.885a.339.339,0,0,0,.0585.256.34548.34548,0,0,0,.48174.08161L12.035,7.7405,13.481,6.7a5.094,5.094,0,0,1,.569,1.9595A5.15849,5.15849,0,0,1,12.8205,12.4a.4345.4345,0,0,0,.0115.5935l.611.6135a.43251.43251,0,0,0,.61159.00876L14.07,13.6a6.866,6.866,0,0,0,.834-7.9255l1.474-1.062a.34551.34551,0,0,0,.08018-.482Z" />
-            <path d="M11.8805,14.533l-3.012-2.524a.3375.3375,0,0,0-.25-.082.3455.3455,0,0,0-.31924.3699L8.2995,12.3l.15,1.84A5.191,5.191,0,0,1,4.014,10.75a.433.433,0,0,0-.5235-.282l-.8325.2365a.43451.43451,0,0,0-.30485.53353l.00485.01647A6.9105,6.9105,0,0,0,8.5865,15.882l.1415,1.754a.34551.34551,0,0,0,.37162.31724L9.1025,17.953a.339.339,0,0,0,.2325-.121l2.5705-2.9945a.216.216,0,0,0-.02494-.30445Z" />
-          </svg>
-        </sp-button>
+        <div>
+          <sp-button
+            :style="isGenerating ? 'background: #1473e6' : ''"
+            size="l" class="generate-button"
+            @mouseover="handleMouseoverForGenerateButton(true)" @mouseleave="handleMouseoverForGenerateButton(false)"
+            @click="generate(false)"
+          >
+            {{ getTextForGenerateButton(false) }}
+            <span v-show="isGenerating" class="generate-button__progressbar" :style="{ width: progress + '%' }"></span>
+          </sp-button>
+        </div>
       </div>
 
-      <sp-picker @change="changeSampler">
-        <sp-label slot="label">Sampling method</sp-label>
-        <sp-menu slot="options">
-          <!-- eslint-disable vue/no-v-text-v-html-on-component vue/no-v-html vue/html-self-closing -->
-          <sp-menu-item
-            v-for="sampler in getSamplers"
-            :key="sampler"
-            :selected="currentSampler == sampler ? true : null"
-            v-html="sampler"
-          >
-          </sp-menu-item>
-          <!-- eslint-enable-->
-        </sp-menu>
-      </sp-picker>
+      <sp-slider v-model-custom-element="imagesNumber" min="1" max="8" show-value="false">
+        <sp-label slot="label" class="label">
+          Number of images
+          <sp-label class="value">{{ imagesNumber }}</sp-label>
+        </sp-label>
+      </sp-slider>
 
       <sp-slider v-model-custom-element="steps" min="1" max="100" show-value="false">
         <sp-label slot="label" class="label">
@@ -105,21 +150,9 @@
         </sp-label>
       </sp-slider>
 
-      <div class="form__modes">
-        <sp-label slot="label">Mode</sp-label>
-
-        <sp-button
-          v-for="mode in modes" :key="mode" size="m"
-          :variant="currentMode == mode ? 'cta' : 'primary'"
-          @click="changeMode(mode)"
-        >
-          {{ mode }}
-        </sp-button>
-      </div>
-
-      <sp-detail v-show="currentMode === 'txt2img'" size="M">
+      <!-- <sp-detail v-show="currentMode === 'txt2img'" size="M">
         Tip for txt2img: you can use the rectangular marquee tool to specify any size (with any ratio) you desire
-      </sp-detail>
+      </sp-detail> -->
 
       <!-- <sp-detail v-show="currentMode !== 'txt2img'" size="M">
         Tip: you can simply click "Generate more" without recreating the selection if you want to generate more images with the same selection.
@@ -133,33 +166,7 @@
         </sp-label>
       </sp-slider>
 
-      <div class="form__advanced-settings">
-        <sp-heading size="XS" @click="toggleAdvancedSettings">
-          <span>{{ showAdvancedSettings ? '▼' : '▶' }}</span>
-          Advanced Settings
-        </sp-heading>
-
-        <div v-if="showAdvancedSettings">
-          <sp-slider v-model-custom-element="imagesNumber" min="1" max="8" show-value="false">
-            <sp-label slot="label" class="label">
-              Number of images
-              <sp-label class="value">{{ imagesNumber }}</sp-label>
-            </sp-label>
-          </sp-slider>
-        </div>
-      </div>
-
       <!-- <sp-divider size="large"></sp-divider> -->
-      <br>
-      <br>
-      <sp-button
-        size="xl" class="generate-button"
-        @mouseover="handleMouseoverForGenerateButton(true)" @mouseleave="handleMouseoverForGenerateButton(false)"
-        @click="generate(false)"
-      >
-        {{ getTextForGenerateButton(false) }}
-        <span v-show="isGenerating" class="generate-button__progressbar" :style="{ width: progress + '%' }"></span>
-      </sp-button>
     </div> <!-- .form -->
 
     <div>
@@ -185,7 +192,12 @@
         </div>
       </div>
 
-      <sp-button v-if="generatedImages.length" variant="primary" @click="generate(true)">
+      <sp-button
+        v-if="generatedImages.length"
+        variant="primary"
+        title="Tip: click without recreating the selection if you want to generate more images with the same selection."
+        @click="generate(true)"
+      >
         {{ getTextForGenerateButton(true) }}
       </sp-button>
     </div>
@@ -243,6 +255,8 @@ export default {
       loadingModelsStatus: '',
       textareaInputDebounceTimer: null,
       showAdvancedSettings: false,
+      showNegativePrompt: true,
+      showPositivePrompt: true,
     };
   },
 
@@ -321,6 +335,14 @@ export default {
   methods: {
     toggleAdvancedSettings() {
       this.showAdvancedSettings = !this.showAdvancedSettings;
+    },
+
+    toggleNegativePrompt() {
+      this.showNegativePrompt = !this.showNegativePrompt;
+    },
+
+    togglePositivePrompt() {
+      this.showPositivePrompt = !this.showPositivePrompt;
     },
 
     handleTextareaInput(event, skipDebounceTimer) {
@@ -675,7 +697,7 @@ export default {
       if (this.isInterrupting) return 'Interrupting...';
       if (this.isGenerating) {
         if (this.isMouseoverGenerateButton) return 'Interrupt';
-        return `Generating (${Math.round(this.progress)}%)`;
+        return `Status: ${Math.round(this.progress)}%`;
       }
       return isGenerateMoreButton ? 'Generate More' : 'Generate';
     },
@@ -690,6 +712,7 @@ export default {
     width: 100%;
     position: relative;
     overflow: hidden;
+    background: transparent;
   }
 
   .generate-button__progressbar {

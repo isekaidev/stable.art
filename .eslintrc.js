@@ -108,6 +108,8 @@ module.exports = {
     'vuejs-accessibility/mouse-events-have-key-events': 'off',
     'vuejs-accessibility/label-has-for': 'off',
     'vuejs-accessibility/form-control-has-label': 'off',
+    // Fix Windows error: Expected linebreaks to be 'LF' but found 'CRLF'  linebreak-style
+    //'linebreak-style': 0
   },
   overrides: [
     {

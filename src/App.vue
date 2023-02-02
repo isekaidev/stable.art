@@ -176,7 +176,7 @@ export default {
     }
 
     sp-slider {
-      margin: 30px 0;
+      margin: 10px 0;
       position: relative;
 
       sp-label {
@@ -190,6 +190,7 @@ export default {
         padding: 0;
         text-align: right;
         min-width: 0;
+        color: white;
       }
     }
 
@@ -200,6 +201,31 @@ export default {
       sp-button {
         margin-left: 10px;
         font-weight: normal;
+
+        &:hover {
+          background: #e3e3e3;
+          color:#252525;
+          border-color: #e3e3e3 !important;
+        }
+      }
+
+      &--half {
+        width: 50%;
+      }
+
+      &--text-btn {
+        max-width: 100px;
+        padding: 0 5px;
+        margin-bottom: 1px;
+        color: #e3e3e3;
+        border: 2px solid #e3e3e3;
+        cursor: pointer;
+
+        &:hover {
+          background: #e3e3e3;
+          color:#252525;
+          border: 2px solid #e3e3e3;
+        }
       }
     }
   }
