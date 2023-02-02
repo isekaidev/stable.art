@@ -553,7 +553,20 @@ export default {
       // DEBUG ERROR: Cannot read properties of null (reading 'resolution') (PHOTOSHOP-PLUGIN-E)
       if (!app.activeDocument?.resolution) {
         Sentry.captureException(new Error('chooseImage: cannot get resolution'), {
-          activeDocument: app.activeDocument,
+          contexts: {
+            activeDocumentObject: app.activeDocument,
+            documentProperties: {
+              id: app.activeDocument?.id,
+              cloudDocument: app.activeDocument?.cloudDocument,
+              height: app.activeDocument?.height,
+              width: app.activeDocument?.width,
+              name: app.activeDocument?.name,
+              resolution: app.activeDocument?.resolution,
+              saved: app.activeDocument?.saved,
+              typename: app.activeDocument?.typename,
+              layers: app.activeDocument?.layers.length,
+            },
+          },
         });
       }
 

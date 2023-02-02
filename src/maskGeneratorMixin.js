@@ -407,11 +407,17 @@ export default {
 
       // DEBUG ERROR: Reduce of empty array with no initial value (PHOTOSHOP-PLUGIN-1B)
       if (!whitePositions.length) {
+        Sentry.configureScope((scope) => {
+          scope.addAttachment({filename: 'handleMask_maskBuffer.png', data: new Uint8Array(maskBuffer), contentType: 'image/png'});
+          // scope.addAttachment({filename: 'handleMask_currentLayerBuffer.png', data: new Uint8Array(currentLayerBuffer), contentType: 'image/png'});
+        });
+
         Sentry.setContext('handleMask', {
           maskBuffer: maskBuffer?.byteLength,
           currentLayerBuffer: currentLayerBuffer?.byteLength,
           maskJimpObject,
           maskJimpObjectBitmap: maskJimpObject?.bitmap,
+          // sentryDebugMaskBase64
         });
       }
 
@@ -486,6 +492,10 @@ export default {
 
       const maskBase64 = await maskJimpObject.getBase64Async(Jimp.MIME_PNG);
       const currentLayerBase64 = await currentLayerJimpObject.getBase64Async(Jimp.MIME_PNG);
+
+      Sentry.configureScope((scope) => {
+        scope.clearAttachments();
+      });
 
       this.initImageData = {maskBase64, currentLayerBase64};
     },
