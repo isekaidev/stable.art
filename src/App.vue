@@ -37,7 +37,7 @@ export default {
   computed: {
     getVersion() {
       const devEnv = process.env.NODE_ENV === 'development' ? 'DEV ' : '';
-      return `${devEnv}${uxp.versions.plugin} — ${process.env.VUE_APP_GIT_HASH}`;
+      return `${devEnv}${uxp.versions.plugin} — ${process.env.VUE_APP_GIT_HASH.slice(0, 7)}`;
     },
   },
 
