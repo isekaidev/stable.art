@@ -391,6 +391,7 @@ export default {
         this.currentModelTitle = null;
         const axiosConfig = {transitional: {silentJSONParsing: false}, responseType: 'json'};
         this.models = (await axios.get(`${this.endpoint}/sdapi/v1/sd-models`, axiosConfig)).data;
+        if (!this.models.length) throw new Error('Cannot get models');
       }
       catch (modelsError) {
         try {
