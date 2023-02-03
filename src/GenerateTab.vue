@@ -390,20 +390,19 @@ export default {
       try {
         this.currentModelTitle = null;
         this.models = (await axios.get(`${this.endpoint}/sdapi/v1/sd-models`)).data;
+        if (!this.models.length) throw new Error('Cannot get models');
       }
       catch (modelsError) {
         try {
           await axios.get(this.endpoint);
         }
         catch (endpointError) {
-          console.error('endpointError error', endpointError);
           await app.showAlert('Error: cannot connect to your server');
           this.loadingModelsStatus = '';
           return;
         }
 
-        console.error('/sd-models error', modelsError);
-        await app.showAlert('Error: cannot connect to your API');
+        await app.showAlert('Error: your server is live, but the plugin cannot connect to the API');
       }
 
       this.loadingModelsStatus = '';
