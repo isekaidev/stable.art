@@ -229,11 +229,11 @@ export default {
           name: 'Generate mask',
         });
 
-        const [currentLayerBuffer, currentLayerProperties] = await this.exportActiveLayer();
+        const [currentLayerBuffer, currentLayerProperties] = await this.exportActiveLayer('document');
         const isCurrentLayerTopmost = currentLayerProperties.count === currentLayerProperties.itemIndex;
         await this.generateMaskFromSelection(isCurrentLayerTopmost);
 
-        const [maskBuffer] = await this.exportActiveLayer();
+        const [maskBuffer] = await this.exportActiveLayer('mask');
 
         // remove layer with generated mask and select the initial layer
         await action.batchPlay([
@@ -258,25 +258,45 @@ export default {
       }, {commandName: 'Generating mask...'});
     },
 
-    async loadLocalFile(filename, count) {
+    async loadLocalFile(filename, count, debugType) {
       const newCount = count ? count + 1 : 1;
 
       if (newCount > 5000) {
         await app.showAlert(`Cannot export ${filename}. Try to reload Photoshop and check that "Quick Export as PNG" is working`);
-        throw new Error(`Cannot export ${filename}`);
+        // throw new Error(`Cannot export ${filename}`);
+
+        // DEBUG ERROR: Cannot export stableart_exported_mask.png (PHOTOSHOP-PLUGIN-G)
+        Sentry.captureException(new Error(`Cannot export ${filename}; type=${debugType}`), {
+          contexts: {
+            activeDocumentObject: app.activeDocument,
+            documentProperties: {
+              debugType,
+
+              id: app.activeDocument?.id,
+              cloudDocument: app.activeDocument?.cloudDocument,
+              height: app.activeDocument?.height,
+              width: app.activeDocument?.width,
+              name: app.activeDocument?.name,
+              resolution: app.activeDocument?.resolution,
+              saved: app.activeDocument?.saved,
+              typename: app.activeDocument?.typename,
+              layers: app.activeDocument?.layers.length,
+            },
+          },
+        });
       }
 
       try {
         const fileArrayBuffer = await fs.readFile(`plugin-temp:/${filename}`);
-        if (fileArrayBuffer.byteLength === 0) return this.loadLocalFile(filename, newCount);
+        if (fileArrayBuffer.byteLength === 0) return this.loadLocalFile(filename, newCount, debugType);
         return fileArrayBuffer;
       }
       catch (e) {
-        return this.loadLocalFile(filename, newCount);
+        return this.loadLocalFile(filename, newCount, debugType);
       }
     },
 
-    async exportActiveLayer() {
+    async exportActiveLayer(debugType) {
       const cmd = [
         {
           _obj: 'multiGet',
@@ -306,7 +326,7 @@ export default {
       const imageFile = await this.tempFolder.createFile(EXPORT_MASK_FILENAME, {overwrite: true});
       await app.activeDocument.saveAs.png(imageFile, {compression: 6}, true);
 
-      const activeLayerBuffer = await this.loadLocalFile(EXPORT_MASK_FILENAME);
+      const activeLayerBuffer = await this.loadLocalFile(EXPORT_MASK_FILENAME, 0, debugType);
       await fs.unlink(`plugin-temp:/${EXPORT_MASK_FILENAME}`);
 
       return [activeLayerBuffer, activeLayerResults[0]];
