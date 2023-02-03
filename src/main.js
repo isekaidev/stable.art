@@ -29,6 +29,7 @@ Sentry.init({
   dsn: process.env.VUE_APP_SENTRY_DSN,
   environment: process.env.NODE_ENV,
   // release: `stableart@${uxp.versions.plugin}—${process.env.VUE_APP_GIT_HASH}`,
+  release: process.env.VUE_APP_GIT_HASH,
   integrations: [
     new BrowserTracing(),
   ],

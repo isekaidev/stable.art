@@ -2,7 +2,7 @@ const {defineConfig} = require('@vue/cli-service');
 const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 const HtmlReplaceWebpackPlugin = require('html-replace-webpack-plugin');
 
-process.env.VUE_APP_GIT_HASH = require('child_process').execSync('git rev-parse --short HEAD').toString().trim();
+process.env.VUE_APP_GIT_HASH = require('child_process').execSync('git rev-parse HEAD').toString().trim();
 
 module.exports = defineConfig({
   transpileDependencies: true,
