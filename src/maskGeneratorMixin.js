@@ -399,7 +399,7 @@ export default {
       const whitePositions = [];
       maskJimpObject.scan(0, 0, maskJimpObject.bitmap.width, maskJimpObject.bitmap.height, (x, y, idx) => {
         const {data} = maskJimpObject.bitmap;
-        const isWhiteColor = data[idx] === 255 && data[idx + 1] === 255 && data[idx + 2] === 255;
+        const isWhiteColor = data[idx] !== 0 && data[idx + 1] !== 0 && data[idx + 2] !== 0;
         if (isWhiteColor) {
           whitePositions.push({x, y});
         }
