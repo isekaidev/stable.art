@@ -56,6 +56,22 @@
         </sp-textarea>
       </div>
 
+      <div v-if="styles.length" class="form__collapsed-section form__collapsed-section--styles">
+        <sp-heading size="XS" @click="toggleCollapsedSection('styles')">
+          <span>{{ showCollapsedSection.styles ? '▼' : '▶' }}</span>
+          Styles
+        </sp-heading>
+
+        <div v-if="showCollapsedSection.styles">
+          <sp-checkbox
+            v-for="style in styles" :key="style.name" :checked="style.checked"
+            @input="handleStyleCheckbox($event, style.name)"
+          >
+            <span>{{ style.name }}</span>
+          </sp-checkbox>
+        </div>
+      </div>
+
       <div class="form__inline-field">
         <sp-textfield v-model-custom-element="seed" type="text" placeholder="(Optional)">
           <sp-label slot="label">Seed</sp-label>
@@ -133,13 +149,13 @@
         </sp-label>
       </sp-slider>
 
-      <div class="form__advanced-settings">
-        <sp-heading size="XS" @click="toggleAdvancedSettings">
-          <span>{{ showAdvancedSettings ? '▼' : '▶' }}</span>
+      <div class="form__collapsed-section">
+        <sp-heading size="XS" @click="toggleCollapsedSection('advancedSettings')">
+          <span>{{ showCollapsedSection.advancedSettings ? '▼' : '▶' }}</span>
           Advanced Settings
         </sp-heading>
 
-        <div v-if="showAdvancedSettings">
+        <div v-if="showCollapsedSection.advancedSettings">
           <sp-slider v-model-custom-element="imagesNumber" min="1" max="8" show-value="false">
             <sp-label slot="label" class="label">
               Number of images
@@ -221,6 +237,7 @@ export default {
       cfgScale: 7,
       denoisingStrength: 75,
       imagesNumber: 4,
+      styles: [],
 
       generatedImages: [],
       currentGeneratedImageIndex: 0,
@@ -242,13 +259,17 @@ export default {
       currentModelTitle: null,
       loadingModelsStatus: '',
       textareaInputDebounceTimer: null,
-      showAdvancedSettings: false,
+
+      showCollapsedSection: {advancedSettings: false, styles: false},
     };
   },
 
   computed: {
     getDefaultModelTitle() {
       return 'default (current webui value)';
+    },
+    getCheckedStyles() {
+      return this.styles.filter((x) => x.checked === true).map((x) => x.name);
     },
     getSizeForGeneratingImage() {
       // https://github.com/AUTOMATIC1111/stable-diffusion-webui/issues/4094
@@ -319,8 +340,13 @@ export default {
   },
 
   methods: {
-    toggleAdvancedSettings() {
-      this.showAdvancedSettings = !this.showAdvancedSettings;
+    handleStyleCheckbox(event, styleName) {
+      const styleIndex = this.styles.findIndex((x) => x.name === styleName);
+      this.$set(this.styles[styleIndex], 'checked', event.target.checked);
+    },
+
+    toggleCollapsedSection(section) {
+      this.showCollapsedSection[section] = !this.showCollapsedSection[section];
     },
 
     handleTextareaInput(event, skipDebounceTimer) {
@@ -392,6 +418,8 @@ export default {
         const axiosConfig = {transitional: {silentJSONParsing: false}, responseType: 'json'};
         this.models = (await axios.get(`${this.endpoint}/sdapi/v1/sd-models`, axiosConfig)).data;
         if (!this.models.length) throw new Error('Cannot get models');
+
+        this.styles = (await axios.get(`${this.endpoint}/sdapi/v1/prompt-styles`, axiosConfig)).data;
       }
       catch (modelsError) {
         try {
@@ -774,7 +802,7 @@ export default {
       border-radius: 0px;
   }
 
-  .form__advanced-settings {
+  .form__collapsed-section {
     & > sp-heading {
       cursor: pointer;
 
@@ -788,6 +816,10 @@ export default {
     & > div {
       width: 100%;
     }
+  }
+
+  .form__collapsed-section--styles sp-heading {
+    margin: 0 0 10px;
   }
 
 </style>

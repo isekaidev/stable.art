@@ -193,6 +193,11 @@ export default {
       }
     }
 
+    sp-checkbox {
+      margin-right: 20px;
+      cursor: pointer;
+    }
+
     .form__inline-field {
       flex-wrap: nowrap;
       align-items: end;
