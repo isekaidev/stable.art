@@ -194,8 +194,8 @@ export default {
     }
 
     sp-checkbox {
-      margin-right: 20px;
       cursor: pointer;
+      margin-right: 7px;
     }
 
     .form__inline-field {
