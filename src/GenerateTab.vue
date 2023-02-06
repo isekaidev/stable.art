@@ -167,9 +167,7 @@
             <sp-checkbox :checked="isSaveImagesLocally" @input="toggleIsSaveImagesLocally">
               Save generated images locally
             </sp-checkbox>
-            <sp-link href="#" @click.prevent="openFolderWithGeneratedImages">
-              (open folder)
-            </sp-link>
+            <sp-link href="#" quiet @click.prevent="openFolderWithGeneratedImages">(open folder)</sp-link>
           </div>
         </div>
       </div>
@@ -714,7 +712,7 @@ export default {
           ];
 
           const placeImageResults = await action.batchPlay(placeImageCmd, {modalBehavior: 'execute'});
-          this.currentLayerId = placeImageResults.find((x) => x._obj === 'placeEvent').ID; // eslint-disable-line no-underscore-dangle
+          this.currentLayerId = placeImageResults.find((x) => x._obj === 'placeEvent').ID;
 
           // we do not need to add a mask for txt2img images
           if (this.currentMode === 'txt2img') {

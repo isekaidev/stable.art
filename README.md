@@ -1,3 +1,9 @@
+<div align="center">
+    <a href="https://discord.gg/hTbDFxG78a">
+        <img src="./discord_logo.png" alt="discord logo" />
+    </a>
+</div>
+
 # Stable.art 🖼
 
 Stable.art is an open-source plugin for Photoshop (v23.3.0+) that allows you to use Stable Diffusion (with Automatic1111 as a backend) to accelerate your art workflow. Say goodbye to tedious art processes and hello to seamless creativity with Stable.art.

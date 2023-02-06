@@ -10,7 +10,10 @@
     <GenerateTab v-show="currentTab == 'generate'" />
     <ExploreTab v-show="currentTab == 'explore'" />
 
-    <sp-detail class="version">Version: {{ getVersion }}</sp-detail>
+    <div class="footer">
+      <sp-link href="https://discord.gg/hTbDFxG78a" size="xl" quiet @click.prevent="openDiscord">Our discord</sp-link>
+      <sp-detail>Version: {{ getVersion }}</sp-detail>
+    </div>
   </div>
 </template>
 
@@ -54,6 +57,9 @@ export default {
     changeTab(tab) {
       this.currentTab = tab;
     },
+    openDiscord(event) {
+      uxp.shell.openExternal(event.target.href);
+    },
   },
 
 };
@@ -75,10 +81,15 @@ export default {
   }
 
   /* INDEX.HTML */
-  .version {
+  .footer {
     text-align: center;
     margin-top: 150px;
     opacity: 0.8;
+
+    & > * {
+      margin-bottom: 8px;
+      display: block;
+    }
   }
 
   div {

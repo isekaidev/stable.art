@@ -31,7 +31,7 @@ module.exports = {
     'vue/singleline-html-element-content-newline': ['error', {
       ignoreWhenNoAttributes: true,
       ignoreWhenEmpty: true,
-      ignores: ['sp-label', 'sp-detail', 'sp-body', 'pre', 'textarea', ...INLINE_ELEMENTS],
+      ignores: ['sp-link', 'sp-heading', 'sp-label', 'sp-detail', 'sp-body', 'pre', 'textarea', ...INLINE_ELEMENTS],
     }],
 
     // [Overwrites Airbnb]
@@ -70,7 +70,7 @@ module.exports = {
     // [Overwrites Airbnb for properties of photoshop objects]
     // Disallow dangling underscores in identifiers
     // https://eslint.org/docs/latest/rules/no-underscore-dangle
-    'no-underscore-dangle': ['error', {allow: ['_value', '_id']}],
+    'no-underscore-dangle': ['error', {allow: ['_value', '_id', '_obj']}],
 
     // [Overwrites Airbnb to disable minProperties]
     // Enforce consistent line breaks inside braces
