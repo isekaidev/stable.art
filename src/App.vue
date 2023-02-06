@@ -184,6 +184,7 @@ export default {
 
     sp-textfield, sp-textarea {
       width: 100%;
+      max-height: 505px;
     }
 
     sp-slider {
