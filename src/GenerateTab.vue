@@ -450,7 +450,7 @@ export default {
           return;
         }
 
-        await app.showAlert('Error: your server is live, but the plugin cannot connect to the API');
+        await app.showAlert('Error: the webui server is live, but you did not enable API. Please check the official API guide on the webui wiki');
       }
 
       this.loadingModelsStatus = '';
