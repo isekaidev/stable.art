@@ -18,7 +18,7 @@ Vue.directive('model-custom-element', modelCustomElement);
 
 Vue.config.errorHandler = async (err) => {
   if (String(err)) {
-    await app.showAlert(String(err));
+    await app.showAlert(`${String(err)} \n Please report steps to reproduce this error on Github Issues or our Discord`);
   }
   // throw err; // rethrow
 };
