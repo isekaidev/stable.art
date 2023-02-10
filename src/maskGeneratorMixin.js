@@ -154,7 +154,7 @@ export default {
           mask_blur: 4,
           inpainting_fill: this.currentMode === 'inpaint' ? 1 : 0, // 1 == original; 2 == latent noise
           inpaint_full_res: true,
-          inpaint_full_res_padding: 32,
+          inpaint_full_res_padding: Number(this.inpaintPadding * 8),
           inpainting_mask_invert: 0,
           prompt: this.prompt,
           styles: this.getCheckedStyles,

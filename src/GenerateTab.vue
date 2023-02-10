@@ -149,6 +149,33 @@
         </sp-label>
       </sp-slider>
 
+      <div v-show="currentMode !== 'txt2img'" class="form__collapsed-section">
+        <sp-heading v-show="currentMode === 'img2img'" size="XS" @click="toggleCollapsedSection('inpaintAdvancedSettings')">
+          <span>{{ showCollapsedSection.inpaintAdvancedSettings ? '▼' : '▶' }}</span>
+          Img2img advanced Settings
+        </sp-heading>
+        <sp-heading v-show="currentMode === 'inpaint'" size="XS" @click="toggleCollapsedSection('inpaintAdvancedSettings')">
+          <span>{{ showCollapsedSection.inpaintAdvancedSettings ? '▼' : '▶' }}</span>
+          Inpaint advanced Settings
+        </sp-heading>
+
+        <div v-if="showCollapsedSection.inpaintAdvancedSettings">
+          <sp-slider v-model-custom-element="inpaintSuperSampling" min="20" max="80" show-value="false">
+            <sp-label slot="label" class="label">
+              Supersampling
+              <sp-label class="value">{{ inpaintSuperSampling / 20 }}</sp-label>
+            </sp-label>
+          </sp-slider>
+
+          <sp-slider v-show="currentMode === 'inpaint'" v-model-custom-element="inpaintPadding" min="0" max="32" show-value="false">
+            <sp-label slot="label" class="label">
+              Padding
+              <sp-label class="value">{{ inpaintPadding * 8 }}</sp-label>
+            </sp-label>
+          </sp-slider>
+        </div>
+      </div>
+
       <div class="form__collapsed-section">
         <sp-heading size="XS" @click="toggleCollapsedSection('advancedSettings')">
           <span>{{ showCollapsedSection.advancedSettings ? '▼' : '▶' }}</span>
@@ -243,6 +270,8 @@ export default {
       steps: 20,
       cfgScale: 7,
       denoisingStrength: 75,
+      inpaintSuperSampling: 20,
+      inpaintPadding: 4,
       imagesNumber: 4,
       styles: [],
 
@@ -268,7 +297,7 @@ export default {
       loadingModelsStatus: '',
       textareaInputDebounceTimer: null,
 
-      showCollapsedSection: {advancedSettings: false, styles: false},
+      showCollapsedSection: {advancedSettings: false, styles: false, inpaintAdvancedSettings: false},
       isSaveImagesLocally: false,
     };
   },
@@ -288,6 +317,11 @@ export default {
       if (!width || !height) {
         width = 512;
         height = 512;
+      }
+
+      if (this.currentMode !== 'txt2img' && this.inpaintSuperSampling !== 20) {
+        width = Math.round(width * (this.inpaintSuperSampling / 20));
+        height = Math.round(height * (this.inpaintSuperSampling / 20));
       }
 
       if (width !== height || this.currentMode !== 'txt2img') {
