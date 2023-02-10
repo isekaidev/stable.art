@@ -319,6 +319,11 @@ export default {
         height = 512;
       }
 
+      if (this.currentMode !== 'txt2img' && this.inpaintSuperSampling !== 20) {
+        width = Math.round(width * (this.inpaintSuperSampling / 20));
+        height = Math.round(height * (this.inpaintSuperSampling / 20));
+      }
+
       if (width !== height || this.currentMode !== 'txt2img') {
         width = 8 * Math.round(width / 8);
         height = 8 * Math.round(height / 8);
