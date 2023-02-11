@@ -451,17 +451,18 @@ export default {
       this.generatedImagePosition = {left: leftPosition, top: topPosition};
 
       if (this.currentMode === 'inpaint') {
-        const absoluteMinDimension = 448;
-        const autoDimension = 512;
+        const absoluteMinDimension = 448; // don't let any dimension fall below this value
+        const autoDimension = 512; // use this value for 'auto'
 
         const inpaintAreaWidth = rightPosition - leftPosition;
         const inpaintAreaHeight = bottomPosition - topPosition;
 
         const inpaintRatio = inpaintAreaWidth / inpaintAreaHeight;
-        const inpaintDimension = this.inpaintDimension > (448 - this.inpaintDimensionStep) / this.inpaintDimensionStep // auto
+        const inpaintDimension = this.inpaintDimension > (448 - this.inpaintDimensionStep) / this.inpaintDimensionStep // slider on 'auto'
           ? Math.round((this.inpaintDimension * this.inpaintDimensionStep))
           : autoDimension;
 
+        // calculate inpainting min dimensions using the long side
         let inpaintDimensionWidth;
         let inpaintDimensionHeight;
         if (inpaintRatio >= 1.0) {
@@ -479,6 +480,7 @@ export default {
           }
         }
 
+        // handle width if needed
         if (inpaintAreaWidth < inpaintDimensionWidth) {
           const widthOffset = (inpaintDimensionWidth - inpaintAreaWidth) / 2;
           const canvasWidth = maskJimpObject.bitmap.width;
@@ -495,6 +497,7 @@ export default {
           }
         }
 
+        // handle height if needed
         if (inpaintAreaHeight < inpaintDimensionHeight) {
           const heightOffset = (inpaintDimensionHeight - inpaintAreaHeight) / 2;
           const canvasHeight = maskJimpObject.bitmap.height;

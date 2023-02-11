@@ -149,7 +149,7 @@
         </sp-label>
       </sp-slider>
 
-      <div v-show="currentMode !== 'txt2img'" class="form__collapsed-section">
+      <div v-show="currentMode === 'inpaint'" class="form__collapsed-section">
         <sp-heading v-show="currentMode === 'img2img'" size="XS" @click="toggleCollapsedSection('inpaintAdvancedSettings')">
           <span>{{ showCollapsedSection.inpaintAdvancedSettings ? '▼' : '▶' }}</span>
           Img2img Advanced Settings
@@ -161,25 +161,13 @@
 
         <div v-if="showCollapsedSection.inpaintAdvancedSettings">
           <sp-slider
-            v-model-custom-element="inpaintSuperSampling"
-            :min="Math.round(1 / inpaintSuperSamplingStep)"
-            :max="Math.round(4 / inpaintSuperSamplingStep)"
-            show-value="false"
-          >
-            <sp-label slot="label" class="label">
-              Supersampling
-              <sp-label class="value">{{ Math.round(inpaintSuperSampling * 100 * inpaintSuperSamplingStep) / 100 }}</sp-label>
-            </sp-label>
-          </sp-slider>
-
-          <sp-slider
             v-model-custom-element="inpaintDimension"
             :min="Math.round((448 - inpaintDimensionStep) / inpaintDimensionStep)"
             :max="Math.round(2560 / inpaintDimensionStep)"
             show-value="false"
           >
             <sp-label slot="label" class="label">
-              Dimension min.
+              Render dimension min.
               <sp-label class="value">{{ inpaintDimension === (448 - inpaintDimensionStep) / inpaintDimensionStep ? 'auto' : Math.round(inpaintDimension * inpaintDimensionStep) }}</sp-label>
             </sp-label>
           </sp-slider>
@@ -284,8 +272,6 @@ export default {
       steps: 20,
       cfgScale: 7,
       denoisingStrength: 75,
-      inpaintSuperSamplingStep: 0.05,
-      inpaintSuperSampling: 20, // 1 / inpaintSuperSamplingStep
       inpaintDimensionStep: 32,
       inpaintDimension: 13, // auto = (448 - inpaintDimensionStep) / inpaintDimensionStep
       imagesNumber: 4,
@@ -333,11 +319,6 @@ export default {
       if (!width || !height) {
         width = 512;
         height = 512;
-      }
-
-      if (this.currentMode !== 'txt2img' && this.inpaintSuperSampling !== (1 / this.inpaintSuperSamplingStep)) {
-        width = Math.round(width * (this.inpaintSuperSampling * this.inpaintSuperSamplingStep));
-        height = Math.round(height * (this.inpaintSuperSampling * this.inpaintSuperSamplingStep));
       }
 
       if (width !== height || this.currentMode !== 'txt2img') {
