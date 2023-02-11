@@ -160,10 +160,15 @@
         </sp-heading>
 
         <div v-if="showCollapsedSection.inpaintAdvancedSettings">
-          <sp-slider v-model-custom-element="inpaintSuperSampling" min="20" max="80" show-value="false">
+          <sp-slider
+            v-model-custom-element="inpaintSuperSampling"
+            :min="Math.round(1 / inpaintSuperSamplingStep)"
+            :max="Math.round(4 / inpaintSuperSamplingStep)"
+            show-value="false"
+          >
             <sp-label slot="label" class="label">
               Supersampling
-              <sp-label class="value">{{ inpaintSuperSampling / 20 }}</sp-label>
+              <sp-label class="value">{{ Math.round(inpaintSuperSampling * 100 * inpaintSuperSamplingStep) / 100 }}</sp-label>
             </sp-label>
           </sp-slider>
         </div>
@@ -267,7 +272,8 @@ export default {
       steps: 20,
       cfgScale: 7,
       denoisingStrength: 75,
-      inpaintSuperSampling: 20,
+      inpaintSuperSamplingStep: 0.05,
+      inpaintSuperSampling: 20, // 1 / inpaintSuperSamplingStep
       imagesNumber: 4,
       styles: [],
 
@@ -315,9 +321,9 @@ export default {
         height = 512;
       }
 
-      if (this.currentMode !== 'txt2img' && this.inpaintSuperSampling !== 20) {
-        width = Math.round(width * (this.inpaintSuperSampling / 20));
-        height = Math.round(height * (this.inpaintSuperSampling / 20));
+      if (this.currentMode !== 'txt2img' && this.inpaintSuperSampling !== (1 / this.inpaintSuperSamplingStep)) {
+        width = Math.round(width * (this.inpaintSuperSampling * this.inpaintSuperSamplingStep));
+        height = Math.round(height * (this.inpaintSuperSampling * this.inpaintSuperSamplingStep));
       }
 
       if (width !== height || this.currentMode !== 'txt2img') {
