@@ -166,13 +166,6 @@
               <sp-label class="value">{{ inpaintSuperSampling / 20 }}</sp-label>
             </sp-label>
           </sp-slider>
-
-          <sp-slider v-show="currentMode === 'inpaint'" v-model-custom-element="inpaintPadding" min="0" max="32" show-value="false">
-            <sp-label slot="label" class="label">
-              Padding
-              <sp-label class="value">{{ inpaintPadding * 8 }}</sp-label>
-            </sp-label>
-          </sp-slider>
         </div>
       </div>
 
@@ -210,6 +203,10 @@
         {{ getTextForGenerateButton(false) }}
         <span v-show="isGenerating" class="generate-button__progressbar" :style="{ width: progress + '%' }"></span>
       </sp-button>
+
+      <sp-detail size="M" class="generated-size">
+        Generated size : {{ getTextForGenerateSize() }}
+      </sp-detail>
     </div> <!-- .form -->
 
     <div>
@@ -271,7 +268,6 @@ export default {
       cfgScale: 7,
       denoisingStrength: 75,
       inpaintSuperSampling: 20,
-      inpaintPadding: 4,
       imagesNumber: 4,
       styles: [],
 
@@ -821,6 +817,9 @@ export default {
       }
       return isGenerateMoreButton ? 'Generate More' : 'Generate';
     },
+    getTextForGenerateSize() {
+      return `${this.getSizeForGeneratingImage.width}x${this.getSizeForGeneratingImage.height}`;
+    },
   },
 
 };
@@ -832,6 +831,10 @@ export default {
     width: 100%;
     position: relative;
     overflow: hidden;
+  }
+
+  .generated-size {
+    text-align: center;
   }
 
   .generate-button__progressbar {
