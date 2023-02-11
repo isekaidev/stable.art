@@ -171,6 +171,18 @@
               <sp-label class="value">{{ Math.round(inpaintSuperSampling * 100 * inpaintSuperSamplingStep) / 100 }}</sp-label>
             </sp-label>
           </sp-slider>
+
+          <sp-slider
+            v-model-custom-element="inpaintDimension"
+            :min="Math.round(0 / inpaintDimensionStep)"
+            :max="Math.round(2560 / inpaintDimensionStep)"
+            show-value="false"
+          >
+            <sp-label slot="label" class="label">
+              Dimension (long side)
+              <sp-label class="value">{{ inpaintDimension === 0 ? 'auto' : Math.round(inpaintDimension * inpaintDimensionStep) }}</sp-label>
+            </sp-label>
+          </sp-slider>
         </div>
       </div>
 
@@ -274,6 +286,8 @@ export default {
       denoisingStrength: 75,
       inpaintSuperSamplingStep: 0.05,
       inpaintSuperSampling: 20, // 1 / inpaintSuperSamplingStep
+      inpaintDimensionStep: 32,
+      inpaintDimension: 0, // auto
       imagesNumber: 4,
       styles: [],
 
