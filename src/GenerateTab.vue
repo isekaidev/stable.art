@@ -149,26 +149,6 @@
         </sp-label>
       </sp-slider>
 
-      <div v-show="currentMode === 'inpaint'" class="form__collapsed-section">
-        <sp-heading v-show="currentMode === 'img2img'" size="XS" @click="toggleCollapsedSection('inpaintAdvancedSettings')">
-          <span>{{ showCollapsedSection.inpaintAdvancedSettings ? '▼' : '▶' }}</span>
-          Img2img Advanced Settings
-        </sp-heading>
-        <sp-heading v-show="currentMode === 'inpaint'" size="XS" @click="toggleCollapsedSection('inpaintAdvancedSettings')">
-          <span>{{ showCollapsedSection.inpaintAdvancedSettings ? '▼' : '▶' }}</span>
-          Inpaint Advanced Settings
-        </sp-heading>
-
-        <div v-if="showCollapsedSection.inpaintAdvancedSettings">
-          <sp-slider v-model-custom-element="inpaintDimension" min="480" max="2560" show-value="false" step="32">
-            <sp-label slot="label" class="label">
-              Render dimension min.
-              <sp-label class="value">{{ inpaintDimension === 480 ? 'auto' : inpaintDimension }}</sp-label>
-            </sp-label>
-          </sp-slider>
-        </div>
-      </div>
-
       <div class="form__collapsed-section">
         <sp-heading size="XS" @click="toggleCollapsedSection('advancedSettings')">
           <span>{{ showCollapsedSection.advancedSettings ? '▼' : '▶' }}</span>
@@ -180,6 +160,13 @@
             <sp-label slot="label" class="label">
               Number of images
               <sp-label class="value">{{ imagesNumber }}</sp-label>
+            </sp-label>
+          </sp-slider>
+
+          <sp-slider v-model-custom-element="inpaintDimension" min="480" max="2560" show-value="false" step="32">
+            <sp-label slot="label" class="label">
+              Render dimension min.
+              <sp-label class="value">{{ inpaintDimension === 480 ? 'auto' : inpaintDimension }}</sp-label>
             </sp-label>
           </sp-slider>
 
