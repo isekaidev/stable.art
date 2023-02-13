@@ -452,36 +452,60 @@ export default {
 
       if (this.currentMode === 'inpaint') {
         const inpaintAreaWidth = rightPosition - leftPosition;
-        if (inpaintAreaWidth < 512) {
-          const widthOffset = (512 - inpaintAreaWidth) / 2;
+        const inpaintAreaHeight = bottomPosition - topPosition;
+
+        const inpaintMinSize = {width: 512, height: 512};
+
+        // if inpaintDimension is used, alter inpaintMinSize.width or height to take
+        // into account the ratio that will be applied in getSizeForGeneratingImage()
+        if (this.inpaintDimension > 480) { // not auto inpaint dimension
+          if (inpaintAreaWidth > inpaintAreaHeight
+            && inpaintAreaHeight * (this.inpaintDimension / inpaintAreaWidth) < 512) {
+            inpaintMinSize.height *= 512 / this.inpaintDimension; // ensure 512 minimum height
+          }
+          else if (inpaintAreaWidth > inpaintAreaHeight) {
+            inpaintMinSize.height *= inpaintAreaHeight / inpaintAreaWidth; // reduced minimum height
+          }
+          else if (inpaintAreaHeight > inpaintAreaWidth
+            && inpaintAreaWidth * (this.inpaintDimension / inpaintAreaHeight) < 512) {
+            inpaintMinSize.width *= 512 / this.inpaintDimension; // ensure 512 minimum width
+          }
+          else if (inpaintAreaHeight > inpaintAreaWidth) {
+            inpaintMinSize.width *= inpaintAreaWidth / inpaintAreaHeight; // reduced minimum width
+          }
+        }
+
+        // enforce inpaint minimum width
+        if (inpaintAreaWidth < inpaintMinSize.width) {
+          const widthOffset = (inpaintMinSize.width - inpaintAreaWidth) / 2;
           const canvasWidth = maskJimpObject.bitmap.width;
 
           rightPosition += widthOffset;
           leftPosition -= widthOffset;
           if (rightPosition > canvasWidth) {
             rightPosition = canvasWidth;
-            leftPosition = canvasWidth - 512;
+            leftPosition = canvasWidth - inpaintMinSize.width;
           }
           if (leftPosition < 0) {
             leftPosition = 0;
-            rightPosition = 512;
+            rightPosition = inpaintMinSize.width;
           }
         }
 
-        const inpaintAreaHeight = bottomPosition - topPosition;
-        if (inpaintAreaHeight < 512) {
-          const heightOffset = (512 - inpaintAreaHeight) / 2;
+        // enforce inpaint minimum height
+        if (inpaintAreaHeight < inpaintMinSize.height) {
+          const heightOffset = (inpaintMinSize.height - inpaintAreaHeight) / 2;
           const canvasHeight = maskJimpObject.bitmap.height;
 
           bottomPosition += heightOffset;
           topPosition -= heightOffset;
           if (bottomPosition > canvasHeight) {
             bottomPosition = canvasHeight;
-            topPosition = canvasHeight - 512;
+            topPosition = canvasHeight - inpaintMinSize.height;
           }
           if (topPosition < 0) {
             topPosition = 0;
-            bottomPosition = 512;
+            bottomPosition = inpaintMinSize.height;
           }
         }
 
