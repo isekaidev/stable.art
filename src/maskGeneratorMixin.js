@@ -460,17 +460,21 @@ export default {
         // into account the ratio that will be applied in getSizeForGeneratingImage()
         if (this.inpaintDimension > 480) { // not auto inpaint dimension
           if (inpaintAreaWidth > inpaintAreaHeight
+            && inpaintAreaWidth < this.inpaintDimension
             && inpaintAreaHeight * (this.inpaintDimension / inpaintAreaWidth) < 512) {
-            inpaintMinSize.height *= 512 / this.inpaintDimension; // ensure 512 minimum height
+            inpaintMinSize.height *= Math.max(512, inpaintAreaWidth) / this.inpaintDimension; // ensure 512 minimum height
           }
-          else if (inpaintAreaWidth > inpaintAreaHeight) {
+          else if (inpaintAreaWidth > inpaintAreaHeight
+            && inpaintAreaWidth < this.inpaintDimension) {
             inpaintMinSize.height *= inpaintAreaHeight / inpaintAreaWidth; // reduced minimum height
           }
           else if (inpaintAreaHeight > inpaintAreaWidth
+            && inpaintAreaHeight < this.inpaintDimension
             && inpaintAreaWidth * (this.inpaintDimension / inpaintAreaHeight) < 512) {
-            inpaintMinSize.width *= 512 / this.inpaintDimension; // ensure 512 minimum width
+            inpaintMinSize.width *= Math.max(512, inpaintAreaHeight) / this.inpaintDimension; // ensure 512 minimum height
           }
-          else if (inpaintAreaHeight > inpaintAreaWidth) {
+          else if (inpaintAreaHeight > inpaintAreaWidth
+            && inpaintAreaHeight < this.inpaintDimension) {
             inpaintMinSize.width *= inpaintAreaWidth / inpaintAreaHeight; // reduced minimum width
           }
         }
