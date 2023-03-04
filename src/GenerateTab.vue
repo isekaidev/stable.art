@@ -284,7 +284,7 @@ export default {
       loadingModelsStatus: '',
       textareaInputDebounceTimer: null,
 
-      showCollapsedSection: {advancedSettings: false, styles: false, inpaintAdvancedSettings: false},
+      showCollapsedSection: {advancedSettings: false, styles: false},
       isSaveImagesLocally: false,
 
       webuiGeneratedSizeMetadata: {width: null, height: null}, // for minimumDimension
