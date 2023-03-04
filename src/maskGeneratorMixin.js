@@ -5,7 +5,7 @@ import * as fs from 'fs';
 
 import Jimp from 'jimp';
 
-const EXPORT_MASK_FILENAME = 'stableart_exported_mask.png';
+import {EXPORT_MASK_FILENAME, DISABLED_MINIMUM_DIMENSION} from './constantsMixin';
 
 export default {
   methods: {
@@ -451,37 +451,31 @@ export default {
       this.generatedImagePosition = {left: leftPosition, top: topPosition};
 
       if (this.currentMode === 'inpaint') {
-        const inpaintAreaWidth = rightPosition - leftPosition;
-        const inpaintAreaHeight = bottomPosition - topPosition;
-
+        const inpaintAreaSize = {
+          width: rightPosition - leftPosition,
+          height: bottomPosition - topPosition,
+        };
         const inpaintMinSize = {width: 512, height: 512};
 
-        // if inpaintDimension is used, alter inpaintMinSize.width or height to take
+        // if minimumDimension is used, alter inpaintMinSize.width or height to take
         // into account the ratio that will be applied in getSizeForGeneratingImage()
-        if (this.inpaintDimension > 480) { // not auto inpaint dimension
-          if (inpaintAreaWidth > inpaintAreaHeight
-            && inpaintAreaWidth < this.inpaintDimension
-            && inpaintAreaHeight * (this.inpaintDimension / inpaintAreaWidth) < 512) {
-            inpaintMinSize.height *= Math.max(512, inpaintAreaWidth) / this.inpaintDimension; // ensure 512 minimum height
+        const biggestProperty = inpaintAreaSize.width > inpaintAreaSize.height ? 'width' : 'height';
+        const smallestProperty = inpaintAreaSize.width > inpaintAreaSize.height ? 'height' : 'width';
+        const isForceInpaintMinimumDimension = this.minimumDimension > DISABLED_MINIMUM_DIMENSION
+                                               && inpaintAreaSize[biggestProperty] < this.minimumDimension;
+
+        if (isForceInpaintMinimumDimension) {
+          if (inpaintAreaSize[smallestProperty] * (this.minimumDimension / inpaintAreaSize[biggestProperty]) < 512) {
+            inpaintMinSize[smallestProperty] *= Math.max(512, inpaintAreaSize[biggestProperty]) / this.minimumDimension; // ensure 512 minimum for smallestProperty
           }
-          else if (inpaintAreaWidth > inpaintAreaHeight
-            && inpaintAreaWidth < this.inpaintDimension) {
-            inpaintMinSize.height *= inpaintAreaHeight / inpaintAreaWidth; // reduced minimum height
-          }
-          else if (inpaintAreaHeight > inpaintAreaWidth
-            && inpaintAreaHeight < this.inpaintDimension
-            && inpaintAreaWidth * (this.inpaintDimension / inpaintAreaHeight) < 512) {
-            inpaintMinSize.width *= Math.max(512, inpaintAreaHeight) / this.inpaintDimension; // ensure 512 minimum height
-          }
-          else if (inpaintAreaHeight > inpaintAreaWidth
-            && inpaintAreaHeight < this.inpaintDimension) {
-            inpaintMinSize.width *= inpaintAreaWidth / inpaintAreaHeight; // reduced minimum width
+          else {
+            inpaintMinSize[smallestProperty] *= inpaintAreaSize[smallestProperty] / inpaintAreaSize[biggestProperty]; // reduced minimum for smallestProperty
           }
         }
 
         // enforce inpaint minimum width
-        if (inpaintAreaWidth < inpaintMinSize.width) {
-          const widthOffset = (inpaintMinSize.width - inpaintAreaWidth) / 2;
+        if (inpaintAreaSize.width < inpaintMinSize.width) {
+          const widthOffset = (inpaintMinSize.width - inpaintAreaSize.width) / 2;
           const canvasWidth = maskJimpObject.bitmap.width;
 
           rightPosition += widthOffset;
@@ -497,8 +491,8 @@ export default {
         }
 
         // enforce inpaint minimum height
-        if (inpaintAreaHeight < inpaintMinSize.height) {
-          const heightOffset = (inpaintMinSize.height - inpaintAreaHeight) / 2;
+        if (inpaintAreaSize.height < inpaintMinSize.height) {
+          const heightOffset = (inpaintMinSize.height - inpaintAreaSize.height) / 2;
           const canvasHeight = maskJimpObject.bitmap.height;
 
           bottomPosition += heightOffset;
@@ -519,8 +513,8 @@ export default {
         this.inpaintOriginalPosition = {
           leftOffset,
           topOffset,
-          width: inpaintAreaWidth,
-          height: inpaintAreaHeight,
+          width: inpaintAreaSize.width,
+          height: inpaintAreaSize.height,
         };
 
         // rightPosition = rightPosition < maskJimpObject.bitmap.width ? rightPosition : maskJimpObject.bitmap.width;

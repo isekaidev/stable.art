@@ -163,10 +163,13 @@
             </sp-label>
           </sp-slider>
 
-          <sp-slider v-model-custom-element="inpaintDimension" min="480" max="2560" show-value="false" step="32">
+          <sp-slider
+            v-model-custom-element="minimumDimension" show-value="false" step="64"
+            :min="getConstants.DISABLED_MINIMUM_DIMENSION" max="2560"
+          >
             <sp-label slot="label" class="label">
-              Render dimension min.
-              <sp-label class="value">{{ inpaintDimension === 480 ? 'auto' : inpaintDimension }}</sp-label>
+              Minimum render dimension
+              <sp-label class="value">{{ minimumDimension === getConstants.DISABLED_MINIMUM_DIMENSION ? 'auto' : minimumDimension }}</sp-label>
             </sp-label>
           </sp-slider>
 
@@ -191,8 +194,8 @@
         <span v-show="isGenerating" class="generate-button__progressbar" :style="{ width: progress + '%' }"></span>
       </sp-button>
 
-      <sp-detail size="M" class="generated-size">
-        Generated size : {{ getTextForGenerateSize() }}
+      <sp-detail v-if="generatedImages.length" size="M" class="generated-size">
+        Generated size: {{ getTextForGeneratedSize }}
       </sp-detail>
     </div> <!-- .form -->
 
@@ -235,10 +238,11 @@ import axios from 'axios';
 import Jimp from 'jimp';
 
 import maskGeneratorMixin from './maskGeneratorMixin';
+import {constantsMixin, DISABLED_MINIMUM_DIMENSION} from './constantsMixin';
 import {changeDpiDataUrl} from './changedpi';
 
 export default {
-  mixins: [maskGeneratorMixin],
+  mixins: [maskGeneratorMixin, constantsMixin],
   data() {
     return {
       isGenerating: false,
@@ -254,7 +258,7 @@ export default {
       steps: 20,
       cfgScale: 7,
       denoisingStrength: 75,
-      inpaintDimension: 480, // auto
+      minimumDimension: DISABLED_MINIMUM_DIMENSION, // auto
       imagesNumber: 4,
       styles: [],
 
@@ -282,6 +286,8 @@ export default {
 
       showCollapsedSection: {advancedSettings: false, styles: false, inpaintAdvancedSettings: false},
       isSaveImagesLocally: false,
+
+      webuiGeneratedSizeMetadata: {width: null, height: null}, // for minimumDimension
     };
   },
 
@@ -302,18 +308,18 @@ export default {
         height = 512;
       }
 
-      if (this.inpaintDimension > 480) { // 480 = auto value
+      if (this.minimumDimension > DISABLED_MINIMUM_DIMENSION) {
         const biggestValue = width > height ? width : height;
-        const ratio = this.inpaintDimension / biggestValue;
+        const ratio = this.minimumDimension / biggestValue;
 
-        if (biggestValue < this.inpaintDimension) {
+        if (biggestValue < this.minimumDimension) {
           if (width > height) {
             height = Math.round(height * ratio);
-            width = this.inpaintDimension;
+            width = this.minimumDimension;
           }
           else {
             width = Math.round(width * ratio);
-            height = this.inpaintDimension;
+            height = this.minimumDimension;
           }
         }
       }
@@ -323,6 +329,10 @@ export default {
         height = 8 * Math.round(height / 8);
       }
       return {width, height};
+    },
+
+    getTextForGeneratedSize() {
+      return `${this.webuiGeneratedSizeMetadata.width}x${this.webuiGeneratedSizeMetadata.height}`;
     },
 
     getSamplers() {
@@ -558,6 +568,9 @@ export default {
       if (this.currentMode === 'inpaint') {
         resDataImages = await this.handleInpaintGeneratedImages(resDataImages, data.mask);
       }
+      else if (this.minimumDimension !== DISABLED_MINIMUM_DIMENSION) {
+        resDataImages = await this.resizeGeneratedImages(resDataImages);
+      }
 
       if (this.isSaveImagesLocally) {
         await this.saveGeneratedImagesLocally(resDataImages, JSON.parse(res.data.info).all_seeds);
@@ -571,6 +584,9 @@ export default {
         this.addedImages = [];
         this.chooseImage(0);
       }
+
+      // it is equal to getSizeForGeneratingImage() if user did not change minimumDimension during generation
+      this.webuiGeneratedSizeMetadata = {width: res.data.parameters.width, height: res.data.parameters.height};
 
       this.currentSeedList = [...this.currentSeedList, ...JSON.parse(res.data.info).all_seeds];
       this.isGenerating = false;
@@ -586,6 +602,24 @@ export default {
         const imageFile = await this.dataFolder.createFile(filename, {overwrite: true}); // eslint-disable-line no-await-in-loop
         await imageFile.write(img, {format: storage.formats.binary}); // eslint-disable-line no-await-in-loop
       }
+    },
+
+    async resizeGeneratedImages(resDataImages) {
+      const generatedImages = [];
+
+      // TODO: Rewrite to Promises without await
+      for (const image of resDataImages) {
+        // eslint-disable-next-line no-await-in-loop
+        const imageJimpObject = await Jimp.read(Buffer.from(image, 'base64'));
+
+        imageJimpObject.resize(this.generatedImageSize.width, this.generatedImageSize.height);
+
+        // eslint-disable-next-line no-await-in-loop
+        const croppedImageBase64 = await imageJimpObject.getBase64Async(Jimp.MIME_PNG);
+        generatedImages.push(croppedImageBase64.replace(/^data:image\/\w+;base64,/, ''));
+      }
+
+      return generatedImages;
     },
 
     async handleInpaintGeneratedImages(resDataImages, debugMask) {
@@ -815,9 +849,6 @@ export default {
       }
       return isGenerateMoreButton ? 'Generate More' : 'Generate';
     },
-    getTextForGenerateSize() {
-      return `${this.getSizeForGeneratingImage.width}x${this.getSizeForGeneratingImage.height}`;
-    },
   },
 
 };
@@ -832,6 +863,7 @@ export default {
   }
 
   .generated-size {
+    margin-top: 10px;
     text-align: center;
   }
 
