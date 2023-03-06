@@ -628,7 +628,8 @@ export default {
       for (const [index, imgUrl] of resDataImages.entries()) {
         const imgBase64 = imgUrl.replace(/^data:image\/\w+;base64,/, '');
         const img = Buffer.from(imgBase64, 'base64');
-        const filename = `${filesNumber + index}-${seedList[index]}-${this.prompt.slice(0, 128)}.png`;
+        const promptFormatted = this.prompt.slice(0, 128).replace(/[\\/:*?"<>|#]/g, '');
+        const filename = `${filesNumber + index}-${seedList[index]}-${promptFormatted}.png`;
 
         const imageFile = await this.dataFolder.createFile(filename, {overwrite: true}); // eslint-disable-line no-await-in-loop
         await imageFile.write(img, {format: storage.formats.binary}); // eslint-disable-line no-await-in-loop
