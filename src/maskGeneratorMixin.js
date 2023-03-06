@@ -5,7 +5,7 @@ import * as fs from 'fs';
 
 import Jimp from 'jimp';
 
-import {EXPORT_MASK_FILENAME, DISABLED_MINIMUM_DIMENSION} from './constantsMixin';
+import {EXPORT_MASK_FILENAME} from './constantsMixin';
 
 export default {
   methods: {
@@ -461,7 +461,7 @@ export default {
         // into account the ratio that will be applied in getSizeForGeneratingImage()
         const biggestProperty = inpaintAreaSize.width > inpaintAreaSize.height ? 'width' : 'height';
         const smallestProperty = inpaintAreaSize.width > inpaintAreaSize.height ? 'height' : 'width';
-        const isForceInpaintMinimumDimension = this.minimumDimension > DISABLED_MINIMUM_DIMENSION
+        const isForceInpaintMinimumDimension = this.currentResizeMode === 'upscale'
                                                && inpaintAreaSize[biggestProperty] < this.minimumDimension;
 
         if (isForceInpaintMinimumDimension) {

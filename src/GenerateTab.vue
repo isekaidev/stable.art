@@ -121,13 +121,13 @@
         </sp-label>
       </sp-slider>
 
-      <div class="form__modes">
+      <div class="form__radio-buttons">
         <sp-label slot="label">Mode</sp-label>
 
         <sp-button
           v-for="mode in modes" :key="mode" size="m"
           :variant="currentMode == mode ? 'cta' : 'primary'"
-          @click="changeMode(mode)"
+          @click="changeRadioButton('currentMode', mode)"
         >
           {{ mode }}
         </sp-button>
@@ -149,13 +149,13 @@
         </sp-label>
       </sp-slider>
 
-      <div class="form__collapsed-section">
+      <div class="form__collapsed-section form__collapsed-section--advanced-settings">
         <sp-heading size="XS" @click="toggleCollapsedSection('advancedSettings')">
           <span>{{ showCollapsedSection.advancedSettings ? '▼' : '▶' }}</span>
           Advanced Settings
         </sp-heading>
 
-        <div v-if="showCollapsedSection.advancedSettings">
+        <div v-if="showCollapsedSection.advancedSettings" class="form__collapsed-section__content">
           <sp-slider v-model-custom-element="imagesNumber" min="1" max="8" show-value="false">
             <sp-label slot="label" class="label">
               Number of images
@@ -163,13 +163,37 @@
             </sp-label>
           </sp-slider>
 
+          <div class="form__radio-buttons">
+            <sp-label slot="label">Resize</sp-label>
+
+            <sp-button
+              v-for="resizeMode in resizeModes" :key="resizeMode" size="s"
+              :variant="currentResizeMode === resizeMode ? 'cta' : 'primary'"
+              @click="changeRadioButton('currentResizeMode', resizeMode)"
+            >
+              {{ resizeMode }}
+            </sp-button>
+          </div>
+
           <sp-slider
+            v-show="currentResizeMode === 'downscale'"
+            v-model-custom-element="maximumDimension" show-value="false" step="64"
+            min="384" max="1024"
+          >
+            <sp-label slot="label" class="label">
+              Maximum render dimension
+              <sp-label class="value">{{ maximumDimension }}px</sp-label>
+            </sp-label>
+          </sp-slider>
+
+          <sp-slider
+            v-show="currentResizeMode === 'upscale'"
             v-model-custom-element="minimumDimension" show-value="false" step="64"
-            :min="getConstants.DISABLED_MINIMUM_DIMENSION" max="2560"
+            min="512" max="2560"
           >
             <sp-label slot="label" class="label">
               Minimum render dimension
-              <sp-label class="value">{{ minimumDimension === getConstants.DISABLED_MINIMUM_DIMENSION ? 'auto' : minimumDimension }}</sp-label>
+              <sp-label class="value">{{ minimumDimension }}px</sp-label>
             </sp-label>
           </sp-slider>
 
@@ -238,7 +262,7 @@ import axios from 'axios';
 import Jimp from 'jimp';
 
 import maskGeneratorMixin from './maskGeneratorMixin';
-import {constantsMixin, DISABLED_MINIMUM_DIMENSION} from './constantsMixin';
+import {constantsMixin} from './constantsMixin';
 import {changeDpiDataUrl} from './changedpi';
 
 export default {
@@ -258,7 +282,8 @@ export default {
       steps: 20,
       cfgScale: 7,
       denoisingStrength: 75,
-      minimumDimension: DISABLED_MINIMUM_DIMENSION, // auto
+      minimumDimension: 512,
+      maximumDimension: 512,
       imagesNumber: 4,
       styles: [],
 
@@ -288,6 +313,8 @@ export default {
       isSaveImagesLocally: false,
 
       webuiGeneratedSizeMetadata: {width: null, height: null}, // for minimumDimension
+      resizeModes: ['disabled', 'downscale', 'upscale'],
+      currentResizeMode: 'disabled',
     };
   },
 
@@ -308,18 +335,22 @@ export default {
         height = 512;
       }
 
-      if (this.minimumDimension > DISABLED_MINIMUM_DIMENSION) {
+      if (this.currentResizeMode === 'upscale' || this.currentResizeMode === 'downscale') {
         const biggestValue = width > height ? width : height;
-        const ratio = this.minimumDimension / biggestValue;
+        // upscale == minimumDimension; downscale == maximumDimension;
+        const dimension = this.currentResizeMode === 'upscale' ? this.minimumDimension : this.maximumDimension;
+        const ratio = dimension / biggestValue;
 
-        if (biggestValue < this.minimumDimension) {
+        const isResizeRequired = (this.currentResizeMode === 'upscale' && biggestValue < dimension)
+                                 || (this.currentResizeMode === 'downscale' && biggestValue > dimension);
+        if (isResizeRequired) {
           if (width > height) {
             height = Math.round(height * ratio);
-            width = this.minimumDimension;
+            width = dimension;
           }
           else {
             width = Math.round(width * ratio);
-            height = this.minimumDimension;
+            height = dimension;
           }
         }
       }
@@ -527,8 +558,8 @@ export default {
       }
     },
 
-    changeMode(mode) {
-      this.currentMode = mode;
+    changeRadioButton(buttonVariable, newValue) {
+      this[buttonVariable] = newValue;
     },
 
     reuseSeed() {
@@ -565,15 +596,15 @@ export default {
       }
 
       let resDataImages = res.data.images;
+      if (this.isSaveImagesLocally) {
+        await this.saveGeneratedImagesLocally(resDataImages, JSON.parse(res.data.info).all_seeds);
+      }
+
       if (this.currentMode === 'inpaint') {
         resDataImages = await this.handleInpaintGeneratedImages(resDataImages, data.mask);
       }
-      else if (this.minimumDimension !== DISABLED_MINIMUM_DIMENSION) {
+      else if (this.currentResizeMode === 'upscale' || this.currentResizeMode === 'downscale') {
         resDataImages = await this.resizeGeneratedImages(resDataImages);
-      }
-
-      if (this.isSaveImagesLocally) {
-        await this.saveGeneratedImagesLocally(resDataImages, JSON.parse(res.data.info).all_seeds);
       }
 
       this.generatedImages = [...this.generatedImages, ...resDataImages];
@@ -612,7 +643,13 @@ export default {
         // eslint-disable-next-line no-await-in-loop
         const imageJimpObject = await Jimp.read(Buffer.from(image, 'base64'));
 
-        imageJimpObject.resize(this.generatedImageSize.width, this.generatedImageSize.height);
+        try {
+          imageJimpObject.resize(this.generatedImageSize.width, this.generatedImageSize.height);
+        }
+        catch (e) {
+          // error could happen when user uses txt2img without selection, so this.generatedImageSize will have nulls
+          imageJimpObject.resize(512, 512);
+        }
 
         // eslint-disable-next-line no-await-in-loop
         const croppedImageBase64 = await imageJimpObject.getBase64Async(Jimp.MIME_PNG);
@@ -899,11 +936,17 @@ export default {
     }
   }
 
-  .form__modes sp-action-button,
-  .form__modes sp-button {
+  .form__radio-buttons {
+    sp-label {
+      width: 100%;
+    }
+
+    sp-action-button,
+    sp-button {
       margin-right: 10px;
       font-weight: normal;
       border-radius: 0px;
+    }
   }
 
   .form__collapsed-section {
@@ -929,6 +972,12 @@ export default {
 
     sp-checkbox {
       margin-right: 20px;
+    }
+  }
+
+  .form__collapsed-section--advanced-settings {
+    .form__collapsed-section__content > * {
+      margin: 20px 0;
     }
   }
 
