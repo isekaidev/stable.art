@@ -139,6 +139,10 @@ export default {
       storage.localStorage.setItem('currentSampler', this.currentSampler);
       storage.localStorage.setItem('imagesNumber', this.imagesNumber);
       storage.localStorage.setItem('currentMode', this.currentMode);
+      storage.localStorage.setItem('denoisingStrength', this.denoisingStrength);
+      storage.localStorage.setItem('cnWeight', this.cnWeight);
+      storage.localStorage.setItem('cnGuidanceStart', this.cnGuidanceStart);
+      storage.localStorage.setItem('cnGuidanceEnd', this.cnGuidanceEnd);
 
       this.updateProgress();
 
@@ -180,7 +184,27 @@ export default {
           override_settings: {},
           sampler_index: this.currentSampler,
           include_init_images: false,
+          alwayson_scripts: {},
         };
+
+        if (this.imagesNumber > 1 && img2imgData.prompt === '') {
+          img2imgData.prompt = 'prompt'; // fake prompt to avoid batch crash
+        }
+
+        if (this.cnMode === 'tile') {
+          img2imgData.alwayson_scripts.controlnet = {
+            args: [
+              {
+                weight: this.cnWeight / 100,
+                guidance_start: this.cnGuidanceStart / 100,
+                guidance_end: this.cnGuidanceEnd / 100,
+                module: undefined,
+                pixel_perfect: false,
+                model: this.cnModel,
+              },
+            ],
+          };
+        }
 
         await this.sendData(img2imgData, 'img2img');
       }

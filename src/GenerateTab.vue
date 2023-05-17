@@ -197,6 +197,51 @@
             </sp-label>
           </sp-slider>
 
+          <div class="form__radio-buttons">
+            <sp-label slot="label">ControlNet mode</sp-label>
+
+            <sp-button
+              v-for="cnM in cnModes" :key="cnM" size="s"
+              :variant="cnMode === cnM ? 'cta' : 'primary'"
+              @click="changeRadioButton('cnMode', cnM)"
+            >
+              {{ cnM }}
+            </sp-button>
+          </div>
+
+          <sp-slider
+            v-show="cnMode !== 'disabled'"
+            v-model-custom-element="cnWeight" show-value="false" step="5"
+            min="1" max="99"
+          >
+            <sp-label slot="label" class="label">
+              Weight
+              <sp-label class="value">{{ cnWeight/100 }}</sp-label>
+            </sp-label>
+          </sp-slider>
+
+          <sp-slider
+            v-show="cnMode !== 'disabled'"
+            v-model-custom-element="cnGuidanceStart" show-value="false" step="5"
+            min="1" max="99"
+          >
+            <sp-label slot="label" class="label">
+              Guidance start
+              <sp-label class="value">{{ cnGuidanceStart/100 }}</sp-label>
+            </sp-label>
+          </sp-slider>
+
+          <sp-slider
+            v-show="cnMode !== 'disabled'"
+            v-model-custom-element="cnGuidanceEnd" show-value="false" step="5"
+            min="1" max="99"
+          >
+            <sp-label slot="label" class="label">
+              Guidance end
+              <sp-label class="value">{{ cnGuidanceEnd/100 }}</sp-label>
+            </sp-label>
+          </sp-slider>
+
           <div class="form__save-images-option">
             <sp-checkbox :checked="isSaveImagesLocally" @input="toggleIsSaveImagesLocally">
               Save generated images locally
@@ -286,6 +331,13 @@ export default {
       maximumDimension: 512,
       imagesNumber: 4,
       styles: [],
+
+      cnModes: ['disabled', 'tile'],
+      cnMode: 'disabled',
+      cnWeight: 100,
+      cnGuidanceStart: 0,
+      cnGuidanceEnd: 100,
+      cnModel: 'control_v11f1e_sd15_tile_fp16',
 
       generatedImages: [],
       currentGeneratedImageIndex: 0,
@@ -398,7 +450,11 @@ export default {
     this.currentSampler = storage.localStorage.getItem('currentSampler') || this.currentSampler;
     this.imagesNumber = storage.localStorage.getItem('imagesNumber') || this.imagesNumber;
     this.currentMode = storage.localStorage.getItem('currentMode') || this.currentMode;
+    this.denoisingStrength = storage.localStorage.getItem('denoisingStrength') || this.denoisingStrength;
     this.isSaveImagesLocally = storage.localStorage.getItem('isSaveImagesLocally') || this.isSaveImagesLocally;
+    this.cnWeight = storage.localStorage.getItem('cnWeight') || this.cnWeight;
+    this.cnGuidanceStart = storage.localStorage.getItem('cnGuidanceStart') || this.cnGuidanceStart;
+    this.cnGuidanceEnd = storage.localStorage.getItem('cnGuidanceEnd') || this.cnGuidanceEnd;
 
     this.getTempAndDataFolders();
 
@@ -596,6 +652,11 @@ export default {
       }
 
       let resDataImages = res.data.images;
+
+      if (this.cnMode !== 'disabled') {
+        resDataImages.pop(); // last image is controlNet input image
+      }
+
       if (this.isSaveImagesLocally) {
         await this.saveGeneratedImagesLocally(resDataImages, JSON.parse(res.data.info).all_seeds);
       }
