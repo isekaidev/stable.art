@@ -191,16 +191,16 @@ export default {
           img2imgData.prompt = 'prompt'; // fake prompt to avoid batch crash
         }
 
-        if (this.cnMode === 'tile') {
+        if (this.cnMode !== 'disabled') {
           img2imgData.alwayson_scripts.controlnet = {
             args: [
               {
                 weight: this.cnWeight / 100,
                 guidance_start: this.cnGuidanceStart / 100,
                 guidance_end: this.cnGuidanceEnd / 100,
-                module: undefined,
-                pixel_perfect: false,
-                model: this.cnModel,
+                module: this.cnModules[this.cnMode],
+                pixel_perfect: true,
+                model: this.cnModels[this.cnMode],
               },
             ],
           };

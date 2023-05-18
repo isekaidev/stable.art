@@ -332,12 +332,27 @@ export default {
       imagesNumber: 4,
       styles: [],
 
-      cnModes: ['disabled', 'tile'],
+      cnModes: ['disabled', 'tile', 'openface', 'openpose', 'lineart', 'scribble'],
       cnMode: 'disabled',
       cnWeight: 100,
       cnGuidanceStart: 0,
       cnGuidanceEnd: 100,
-      cnModel: 'control_v11f1e_sd15_tile_fp16',
+      cnModules: {
+        disabled: undefined,
+        tile: undefined,
+        lineart: 'lineart_coarse',
+        openpose: 'openpose_full',
+        openface: 'openpose_faceonly',
+        scribble: 'pidinet_sketch',
+      },
+      cnModels: {
+        disabled: undefined,
+        tile: 'control_v11f1e_sd15_tile_fp16',
+        lineart: 'control_v11p_sd15_lineart_fp16',
+        openpose: 'control_v11p_sd15_openpose_fp16',
+        openface: 'control_v11p_sd15_openpose_fp16',
+        scribble: 'control_v11p_sd15_scribble_fp16',
+      },
 
       generatedImages: [],
       currentGeneratedImageIndex: 0,
@@ -653,9 +668,9 @@ export default {
 
       let resDataImages = res.data.images;
 
-      if (this.cnMode !== 'disabled') {
-        resDataImages.pop(); // last image is controlNet input image
-      }
+      // if (this.cnMode !== 'disabled') {
+      //   resDataImages.pop(); // last image is controlNet input image
+      // }
 
       if (this.isSaveImagesLocally) {
         await this.saveGeneratedImagesLocally(resDataImages, JSON.parse(res.data.info).all_seeds);
