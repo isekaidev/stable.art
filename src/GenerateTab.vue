@@ -163,6 +163,13 @@
             </sp-label>
           </sp-slider>
 
+          <sp-slider v-model-custom-element="imagesNumberBatch" min="1" max="100" show-value="false">
+            <sp-label slot="label" class="label">
+              Number of image batches
+              <sp-label class="value">{{ imagesNumberBatch }}</sp-label>
+            </sp-label>
+          </sp-slider>
+
           <div class="form__radio-buttons">
             <sp-label slot="label">Resize</sp-label>
 
@@ -285,6 +292,7 @@ export default {
       minimumDimension: 512,
       maximumDimension: 512,
       imagesNumber: 4,
+      imagesNumberBatch: 1,
       styles: [],
 
       generatedImages: [],
@@ -397,6 +405,7 @@ export default {
     this.cfgScale = storage.localStorage.getItem('cfgScale') || this.cfgScale;
     this.currentSampler = storage.localStorage.getItem('currentSampler') || this.currentSampler;
     this.imagesNumber = storage.localStorage.getItem('imagesNumber') || this.imagesNumber;
+    this.imagesNumberBatch = storage.localStorage.getItem('imagesNumberBatch') || this.imagesNumberBatch;
     this.currentMode = storage.localStorage.getItem('currentMode') || this.currentMode;
     this.isSaveImagesLocally = storage.localStorage.getItem('isSaveImagesLocally') || this.isSaveImagesLocally;
 
